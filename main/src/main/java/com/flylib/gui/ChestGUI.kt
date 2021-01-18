@@ -97,7 +97,11 @@ class GUIObject(val x: NaturalNumber, val y: NaturalNumber, val real_stack: Item
     fun getStack() = handler.getStack()
 }
 
-class GUIObjectEventHandler(var obj: GUIObject, stack: ItemStack,var callbacks:ArrayList<KFunction1<InventoryClickEvent,Unit>>? = null) {
+class GUIObjectEventHandler(
+    var obj: GUIObject,
+    stack: ItemStack,
+    var callbacks: ArrayList<KFunction1<InventoryClickEvent, Unit>> = arrayListOf()
+) {
     private var copy = stack
 
     init {
@@ -114,7 +118,7 @@ class GUIObjectEventHandler(var obj: GUIObject, stack: ItemStack,var callbacks:A
     fun getStack() = copy
 
     fun onClick(e: InventoryClickEvent) {
-        if(callbacks == null || callbacks!!.isEmpty()) return
+        if (callbacks.isEmpty()) return
         if (e.currentItem!!.hasItemMeta()) {
             val meta = e.currentItem!!.itemMeta
             if (meta.persistentDataContainer.has(
@@ -127,7 +131,7 @@ class GUIObjectEventHandler(var obj: GUIObject, stack: ItemStack,var callbacks:A
                         PersistentDataType.BYTE_ARRAY
                     )
                 ) {
-                    for(callback in callbacks!!){
+                    for (callback in callbacks) {
                         callback.invoke(e)
                     }
                 }
