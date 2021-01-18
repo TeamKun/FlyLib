@@ -6,7 +6,7 @@ class State(){
     private var players:HashMap<Player,StateManager> = hashMapOf()
     private val global = StateManager()
 
-    fun getPlayer(p:Player): StateManager {
+    fun player(p:Player): StateManager {
         if(players.containsKey(p)){
             return players[p]!!
         }

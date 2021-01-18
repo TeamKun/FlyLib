@@ -134,6 +134,7 @@ class GUIObjectEventHandler(
                     for (callback in callbacks) {
                         callback.invoke(e)
                     }
+                    e.isCancelled = true
                 }
             }
         }
