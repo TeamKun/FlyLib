@@ -82,8 +82,7 @@ class FlatListException(message: String) : Exception(message) {
 }
 
 /**
- * The Index Start Point is (0,0)
- * However,Even though,width is 1 and height is 1
+ * The Index Start Point is (1,1)
  */
 class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) {
     private var flatList = FlatList<K>()
@@ -103,10 +102,10 @@ class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) {
     }
 
     fun outCheck(x: NaturalNumber, y: NaturalNumber) {
-        if (width - 1 < x.i) {
+        if (width < x.i) {
             throw IndexOutOfSizeException(x.i, y.i, width.i, height.i)
         }
-        if (height - 1 < y.i) {
+        if (height < y.i) {
             throw IndexOutOfSizeException(x.i, y.i, width.i, height.i)
         }
     }

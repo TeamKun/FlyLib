@@ -12,19 +12,16 @@ import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
-import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
-import org.bukkit.material.MaterialData
 import org.bukkit.persistence.PersistentDataHolder
 import org.bukkit.persistence.PersistentDataType
 import java.lang.IllegalArgumentException
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.random.Random
 import kotlin.reflect.KFunction1
 
-abstract class ChestGUI(var p: Player, var col: NaturalNumber, var name: String) {
-    var guis: SizedFlatList<GUIObject> = SizedFlatList(col, NaturalNumber(9))
+class ChestGUI(var p: Player, var col: NaturalNumber, name: String) {
+    var guis: SizedFlatList<GUIObject> = SizedFlatList(NaturalNumber(9), col)
         private set
     var inventory: Inventory
         private set
@@ -38,13 +35,16 @@ abstract class ChestGUI(var p: Player, var col: NaturalNumber, var name: String)
         inventory = Bukkit.createInventory(p, col * 9, name)
     }
 
+    /**
+     * Open Inventory
+     */
     fun open() {
+        inventorySync()
         p.openInventory(inventory)
     }
 
     /**
-     * @param x left is 1,right is max
-     * @param y top is 1,bottom is max
+     * add GUIObject to GUI
      */
     fun addGUIObject(obj: GUIObject) {
         guis.set(obj.x, obj.y, obj)
@@ -64,14 +64,21 @@ abstract class ChestGUI(var p: Player, var col: NaturalNumber, var name: String)
 
     fun getGUIsArray(): Array<GUIObject> {
         val array: Array<GUIObject> =
-            Array(9 * col.toInt()) { GUIObject(NaturalNumber(it % 9), NaturalNumber(it / 9), ItemStack(Material.AIR)) }
-        for (x in 0 until 9) {
-            for (y in 0 until col.toInt()) {
+            Array(9 * col.toInt()) {
+                GUIObject(
+                    NaturalNumber(it % 9 + 1),
+                    NaturalNumber(it / 9 + 1),
+                    ItemStack(Material.AIR)
+                )
+            }
+        for (x in 1..9) {
+            for (y in 1..col.toInt()) {
                 val t = guis.get(NaturalNumber(x), NaturalNumber(y))
                 if (t == null) {
-                    array[y * 9 + x] = GUIObject(NaturalNumber(x), NaturalNumber(y), ItemStack(Material.AIR))
+                    array[(y - 1) * 9 + (x - 1)] =
+                        GUIObject(NaturalNumber(x), NaturalNumber(y), ItemStack(Material.AIR))
                 } else {
-                    array[y * 9 + x] = t.t
+                    array[(y - 1) * 9 + (x - 1)] = t.t
                 }
             }
         }
@@ -90,11 +97,21 @@ abstract class ChestGUI(var p: Player, var col: NaturalNumber, var name: String)
 
 /**
  * @param stack The ItemStack that will be showed in ChestGUI
+ *
+ * e.g.
+ * GUIObject(5,2,ItemStack(Material.Chest,1))
+ * Chest Will be Showed at x:5,y:2
+ * left up is (1,1)
  */
-class GUIObject(val x: NaturalNumber, val y: NaturalNumber, val real_stack: ItemStack) {
-    val handler = GUIObjectEventHandler(this, real_stack)
-    val id: ByteArray = GUIObjectByteManager.instance.getNew()
+class GUIObject(val x: NaturalNumber, val y: NaturalNumber, real_stack: ItemStack) {
+    //    val id: ByteArray = GUIObjectByteManager.instance.getNew()
+    val id: String = UUID.randomUUID().toString()
+    private val handler = GUIObjectEventHandler(this, real_stack)
     fun getStack() = handler.getStack()
+    fun addCallBack(f: KFunction1<InventoryClickEvent, Unit>): GUIObject {
+        handler.callbacks.add(f)
+        return this
+    }
 }
 
 class GUIObjectEventHandler(
@@ -102,39 +119,52 @@ class GUIObjectEventHandler(
     stack: ItemStack,
     var callbacks: ArrayList<KFunction1<InventoryClickEvent, Unit>> = arrayListOf()
 ) {
-    private var copy = stack
+
+    companion object {
+        val nameKey = NamespacedKey(FlyLib.get()!!.plugin, "FlyLib")
+    }
+
+    private var copy: ItemStack = stack.clone()
 
     init {
-        Events.ClickEvent.register(::onClick as KFunction1<Event, Unit>)
         val meta = copy.itemMeta
-        (meta as PersistentDataHolder).persistentDataContainer.set(
-            NamespacedKey(FlyLib.get()!!.plugin, "FlyLib"),
-            PersistentDataType.BYTE_ARRAY,
-            obj.id
-        )
-        copy.setItemMeta(meta)
+        if (meta !== null) {
+            Events.ClickEvent.register(::onClick)
+            meta.persistentDataContainer.set(
+                nameKey,
+                PersistentDataType.STRING,
+                obj.id
+            )
+            copy.itemMeta = meta
+        }
     }
 
     fun getStack() = copy
 
-    fun onClick(e: InventoryClickEvent) {
-        if (callbacks.isEmpty()) return
-        if (e.currentItem!!.hasItemMeta()) {
-            val meta = e.currentItem!!.itemMeta
-            if (meta.persistentDataContainer.has(
-                    NamespacedKey(FlyLib.get()!!.plugin, "FlyLib"),
-                    PersistentDataType.BYTE_ARRAY
-                )
-            ) {
-                if (obj.id === meta.persistentDataContainer.get(
-                        NamespacedKey(FlyLib.get()!!.plugin, "FlyLib"),
-                        PersistentDataType.BYTE_ARRAY
+    fun onClick(e: Event) {
+        if (e is InventoryClickEvent) {
+            if (callbacks.isEmpty()) {
+                return
+            }
+            if (e.currentItem!!.hasItemMeta()) {
+                val meta = e.currentItem!!.itemMeta
+                if (meta.persistentDataContainer.has(
+                        nameKey,
+                        PersistentDataType.STRING
                     )
                 ) {
-                    for (callback in callbacks) {
-                        callback.invoke(e)
+                    if (obj.id === meta.persistentDataContainer.get(
+                            nameKey,
+                            PersistentDataType.STRING
+                        )
+                    ) {
+                        for (callback in callbacks) {
+                            callback.invoke(e)
+                        }
+                        e.isCancelled = true
                     }
-                    e.isCancelled = true
+                } else {
+                    println("[FlyLib][WARN]Data not Found!")
                 }
             }
         }
