@@ -11,6 +11,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataHolder
@@ -129,7 +130,7 @@ class GUIObjectEventHandler(
     init {
         val meta = copy.itemMeta
         if (meta !== null) {
-            Events.ClickEvent.register(::onClick)
+            Events.InventoryClickEvent.register(::onClick)
             meta.persistentDataContainer.set(
                 nameKey,
                 PersistentDataType.STRING,
@@ -196,3 +197,45 @@ class GUIObjectByteManager() {
 }
 
 class GUIObjectByteException(b: Byte) : Exception("$b is already used byte")
+
+class DropChestGUI(val title: String, val p: Player, val col: Int = 1) {
+    val inventory: Inventory
+    private val registry = mutableListOf<KFunction1<MutableList<ItemStack>,Unit>>()
+    init {
+        if (col > 6 || col < 1) {
+            throw IllegalArgumentException("ChestGUI col size is Illegal")
+        }
+        inventory = Bukkit.createInventory(p, col * 9, title)
+        Events.InventoryCloseEvent.register(::onClose)
+    }
+
+    fun open() {
+        p.openInventory(inventory)
+    }
+
+    fun onClose(e:Event){
+        if(e is InventoryCloseEvent){
+            if(e.inventory == inventory){
+                val list = getAllContents()
+                registry.forEach {
+                    it(list)
+                }
+            }
+        }
+    }
+
+    fun getAllContents(): MutableList<ItemStack> {
+        val list = mutableListOf<ItemStack>()
+        inventory.contents.iterator().forEach {
+            if(it != null && it.type !== Material.AIR){
+                list.add(it)
+            }
+        }
+        return list
+    }
+
+    fun register(f:KFunction1<MutableList<ItemStack>,Unit>):DropChestGUI{
+        registry.add(f)
+        return this
+    }
+}

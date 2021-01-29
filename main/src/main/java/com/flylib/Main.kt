@@ -3,7 +3,14 @@ package com.flylib
 import com.flylib.util.FlatList
 
 fun main(args:Array<String>){
-    Test().FlatListTest()
+//    Test().FlatListTest()
+    Example().ChestGUI()
+}
+
+class Example{
+    fun ChestGUI(){
+
+    }
 }
 
 class Test{
