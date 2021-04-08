@@ -1,5 +1,6 @@
 package com.flylib.event
 
+import com.flylib.FlyLib
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -9,9 +10,9 @@ import org.bukkit.event.inventory.InventoryMoveItemEvent
 import kotlin.reflect.KFunction
 import kotlin.reflect.KFunction1
 
-class MainListener : Listener {
-    companion object {
-        var instance: MainListener = MainListener()
+class MainListener(val flylib:FlyLib) : Listener {
+    init {
+        flylib.plugin.server.pluginManager.registerEvents(this,flylib.plugin)
     }
 
     @EventHandler

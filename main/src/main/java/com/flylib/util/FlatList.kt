@@ -84,7 +84,7 @@ class FlatListException(message: String) : Exception(message) {
 /**
  * The Index Start Point is (1,1)
  */
-class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) {
+class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) : Iterable<FlatEntry<K>>{
     private var flatList = FlatList<K>()
     fun set(x: NaturalNumber, y: NaturalNumber, t: K) {
         outCheck(x, y)
@@ -108,6 +108,49 @@ class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) {
         if (height < y.i) {
             throw IndexOutOfSizeException(x.i, y.i, width.i, height.i)
         }
+    }
+
+    override fun iterator(): Iterator<FlatEntry<K>> = iterator
+
+    val iterator = SizedFlatListIterator(this)
+
+    class SizedFlatListIterator<K>(val list: SizedFlatList<K>): Iterator<FlatEntry<K>>{
+        var pointer = Pair(1,1)
+
+        override fun hasNext(): Boolean {
+            return get(getNextPointer()) != null
+        }
+
+        override fun next(): FlatEntry<K> {
+            shiftNext()
+            return get()!!
+        }
+
+        private fun get(pointer:Pair<Int,Int>): FlatEntry<K>? {
+            if(pointer.first <= 0 || pointer.second <=0) return null
+            return list.get(NaturalNumber(pointer.first), NaturalNumber(pointer.second))
+        }
+
+        private fun get(): FlatEntry<K>? = get(pointer)
+
+        private fun shiftNext(){
+            pointer = getNextPointer()
+        }
+
+        private fun getNextPointer():Pair<Int,Int>{
+            var poi = Pair(pointer.first,pointer.second)
+            poi = Pair(poi.first+1,poi.second)
+            if(poi.first > list.width.i){
+                poi = Pair(1,poi.second + 1)
+            }
+            if(poi.second > list.height.i){
+                // すべてがこいつのせい
+//                poi = Pair(poi.first,1)
+                poi = Pair(0,0)
+            }
+            return poi
+        }
+
     }
 }
 

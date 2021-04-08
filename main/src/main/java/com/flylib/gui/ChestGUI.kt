@@ -47,9 +47,9 @@ class ChestGUI(var p: Player, var col: NaturalNumber, name: String) {
     /**
      * add GUIObject to GUI
      */
-    fun addGUIObject(obj: GUIObject) {
+    fun addGUIObject(obj: GUIObject,ignoreSync:Boolean = false) {
         guis.set(obj.x, obj.y, obj)
-        inventorySync()
+        if(!ignoreSync) inventorySync()
         if (isOpening) {
             //ReOpen
             open()
