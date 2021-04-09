@@ -1,5 +1,7 @@
-package com.flylib.gui
+package com.bun133.king.flylib
 
+import com.flylib.gui.ChestGUI
+import com.flylib.gui.GUIObject
 import com.flylib.item.EasyItemBuilder
 import com.flylib.util.NaturalNumber
 import com.flylib.util.SizedFlatList
@@ -48,7 +50,6 @@ class ChestGUICollections {
                 }
 
                 processed++
-
             }
 
             println("Process END!")
@@ -70,7 +71,7 @@ class PagedChestGUI(val p: Player, val col: NaturalNumber, val name: String) {
      */
     fun nextPage() {
         nowPage++
-        if(nowPage > pages.lastIndex) nowPage -= pages.lastIndex
+        if(nowPage > pages.lastIndex) nowPage = 0
         drawPage(nowPage)
     }
 
@@ -80,7 +81,7 @@ class PagedChestGUI(val p: Player, val col: NaturalNumber, val name: String) {
      */
     fun previousPage() {
         nowPage--
-        if (nowPage < 0) nowPage += pages.size
+        if (nowPage < 0) nowPage = pages.lastIndex
         drawPage(nowPage)
     }
 
@@ -105,7 +106,7 @@ class PagedChestGUI(val p: Player, val col: NaturalNumber, val name: String) {
      */
     private fun drawPage(nowPage: Int) {
         clear()
-        if(pages.lastIndex < nowPage){
+        if(pages.lastIndex < nowPage || nowPage < 0){
             println("Page Not Found!")
             return
         }
@@ -198,12 +199,15 @@ class ChestGUIPage(val col: NaturalNumber) {
      * Copy All ItemStacks to ChestGUI
      */
     fun copyToGUI(chest: ChestGUI) {
+        println("copyToGUI")
+        println("map:${map.size()}")
         map.forEach {
             // どうせUI描画で呼ばれるので
             chest.addGUIObject(
-                it.t,
+                GUIObject.deepCopy(it.t),
                 true
             )
+            println("Copied")
         }
     }
 

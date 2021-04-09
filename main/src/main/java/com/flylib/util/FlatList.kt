@@ -1,8 +1,8 @@
 package com.flylib.util
 
 class FlatList<T>() {
-    private var list: ArrayList<FlatColEntry<T>> = arrayListOf()
-
+    var list: ArrayList<FlatColEntry<T>> = arrayListOf()
+        private set
     fun set(x: Int, y: Int, t: T) {
         if (isExist(x, y)) {
             getEntry(x, y)!!.t = t
@@ -85,7 +85,8 @@ class FlatListException(message: String) : Exception(message) {
  * The Index Start Point is (1,1)
  */
 class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) : Iterable<FlatEntry<K>>{
-    private var flatList = FlatList<K>()
+    var flatList = FlatList<K>()
+        private set
     fun set(x: NaturalNumber, y: NaturalNumber, t: K) {
         outCheck(x, y)
         flatList.setEntry(x.i, y.i, t)
@@ -110,15 +111,25 @@ class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) : It
         }
     }
 
+    fun size(): Int {
+        var count = 0
+        flatList.list.forEach {
+            count += it.list.size
+        }
+        return count
+    }
+
     override fun iterator(): Iterator<FlatEntry<K>> = iterator
 
     val iterator = SizedFlatListIterator(this)
 
     class SizedFlatListIterator<K>(val list: SizedFlatList<K>): Iterator<FlatEntry<K>>{
-        var pointer = Pair(1,1)
+        var pointer = Pair(0,1)
 
         override fun hasNext(): Boolean {
-            return get(getNextPointer()) != null
+            val b = get(getNextPointer()) != null
+            if(!b) pointer = Pair(0,1)
+            return b
         }
 
         override fun next(): FlatEntry<K> {
@@ -153,6 +164,7 @@ class SizedFlatList<K>(val width: NaturalNumber, val height: NaturalNumber) : It
 
     }
 }
+
 
 class IndexOutOfSizeException(private val x: Int, private val y: Int, private val width: Int, private val height: Int) :
     Exception(

@@ -14,14 +14,13 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import org.bukkit.persistence.PersistentDataHolder
 import org.bukkit.persistence.PersistentDataType
 import java.lang.IllegalArgumentException
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.reflect.KFunction1
 
-class ChestGUI(var p: Player, var col: NaturalNumber, name: String) {
+open class ChestGUI(var p: Player, var col: NaturalNumber, name: String) {
     var guis: SizedFlatList<GUIObject> = SizedFlatList(NaturalNumber(9), col)
         private set
     var inventory: Inventory
@@ -39,7 +38,7 @@ class ChestGUI(var p: Player, var col: NaturalNumber, name: String) {
     /**
      * Open Inventory
      */
-    fun open() {
+    open fun open() {
         inventorySync()
         p.openInventory(inventory)
     }
@@ -47,7 +46,7 @@ class ChestGUI(var p: Player, var col: NaturalNumber, name: String) {
     /**
      * add GUIObject to GUI
      */
-    fun addGUIObject(obj: GUIObject,ignoreSync:Boolean = false) {
+    fun addGUIObject(obj: GUIObject, ignoreSync:Boolean = false) {
         guis.set(obj.x, obj.y, obj)
         if(!ignoreSync) inventorySync()
         if (isOpening) {
@@ -105,6 +104,22 @@ class ChestGUI(var p: Player, var col: NaturalNumber, name: String) {
  * left up is (1,1)
  */
 class GUIObject(val x: NaturalNumber, val y: NaturalNumber, real_stack: ItemStack) {
+    companion object{
+        fun deepCopy(obj: GUIObject): GUIObject {
+            val r = GUIObject(NaturalNumber(obj.x.i),NaturalNumber(obj.y.i),obj.getStack())
+            obj.handler.callbacks.forEach {
+                r.addCallBack(it)
+            }
+
+            obj.handler.runnables.forEach {
+                r.addCallBack(it)
+            }
+
+            return r
+        }
+    }
+
+
     //    val id: ByteArray = GUIObjectByteManager.instance.getNew()
     val id: String = UUID.randomUUID().toString()
     private val handler = GUIObjectEventHandler(this, real_stack)
@@ -113,12 +128,18 @@ class GUIObject(val x: NaturalNumber, val y: NaturalNumber, real_stack: ItemStac
         handler.callbacks.add(f)
         return this
     }
+
+    fun addCallBack(r:(InventoryClickEvent) -> Unit): GUIObject {
+        handler.runnables.add(r)
+        return this
+    }
 }
 
 class GUIObjectEventHandler(
     var obj: GUIObject,
     stack: ItemStack,
-    var callbacks: ArrayList<KFunction1<InventoryClickEvent, Unit>> = arrayListOf()
+    var callbacks: ArrayList<KFunction1<InventoryClickEvent, Unit>> = arrayListOf(),
+    var runnables:ArrayList<(InventoryClickEvent) -> Unit> = arrayListOf()
 ) {
 
     companion object {
@@ -147,6 +168,7 @@ class GUIObjectEventHandler(
             if (callbacks.isEmpty()) {
                 return
             }
+            if(e.currentItem === null) return
             if (e.currentItem!!.hasItemMeta()) {
                 val meta = e.currentItem!!.itemMeta
                 if (meta.persistentDataContainer.has(
@@ -161,6 +183,9 @@ class GUIObjectEventHandler(
                     ) {
                         for (callback in callbacks) {
                             callback.invoke(e)
+                        }
+                        for (callback in runnables) {
+                            callback(e)
                         }
                         e.isCancelled = true
                     }
@@ -234,7 +259,7 @@ class DropChestGUI(val title: String, val p: Player, val col: Int = 1) {
         return list
     }
 
-    fun register(f:KFunction1<MutableList<ItemStack>,Unit>):DropChestGUI{
+    fun register(f:KFunction1<MutableList<ItemStack>,Unit>): DropChestGUI {
         registry.add(f)
         return this
     }
