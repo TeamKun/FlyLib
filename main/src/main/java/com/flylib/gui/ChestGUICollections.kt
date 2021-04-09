@@ -9,6 +9,12 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
 class ChestGUICollections {
+    /**
+     * @param p Player that will open.
+     * @param filter filter Lambda that will be passed all Materials each once
+     * @param name ChestGUIName
+     * @param col Chest Size(Containing UI Col)
+     */
     companion object {
         fun gen(
             p: Player,
@@ -58,28 +64,45 @@ class PagedChestGUI(val p: Player, val col: NaturalNumber, val name: String) {
         private set
     var chest = ChestGUI(p, NaturalNumber(col.i + 1), name)
 
+    /**
+     * Go to Next Page
+     * (Auto Redraw)
+     */
     fun nextPage() {
         nowPage++
         if(nowPage > pages.lastIndex) nowPage -= pages.lastIndex
         drawPage(nowPage)
     }
 
+    /**
+     * Go to PreviousPage
+     * (Auto Redraw)
+     */
     fun previousPage() {
         nowPage--
         if (nowPage < 0) nowPage += pages.size
         drawPage(nowPage)
     }
 
+    /**
+     * Open GUI
+     */
     fun open() {
         drawPage(nowPage)
         chest.open()
     }
 
+    /**
+     * Regenerate Internal ChestGUI
+     */
     fun clear() {
         chest.p.closeInventory()
         chest = ChestGUI(p, NaturalNumber(col.i + 1), name)
     }
 
+    /**
+     * Internal Draw Method
+     */
     private fun drawPage(nowPage: Int) {
         clear()
         if(pages.lastIndex < nowPage){
@@ -92,6 +115,9 @@ class PagedChestGUI(val p: Player, val col: NaturalNumber, val name: String) {
         chest.open()
     }
 
+    /**
+     * Drawing UI
+     */
     private fun drawUI() {
         chest.addGUIObject(
             GUIObject(
@@ -116,21 +142,30 @@ class PagedChestGUI(val p: Player, val col: NaturalNumber, val name: String) {
         )
     }
 
-    fun cPrev(e:InventoryClickEvent){
+    // Internal Methods For UI
+
+    private fun cPrev(e:InventoryClickEvent){
         println("前のページへ")
         previousPage()
     }
 
-    fun cRef(e:InventoryClickEvent){
+    private  fun cRef(e:InventoryClickEvent){
         println("リフレッシュ")
         drawPage(nowPage)
     }
 
-    fun cNext(e:InventoryClickEvent){
+    private  fun cNext(e:InventoryClickEvent){
         println("次のページへ")
         nextPage()
     }
 
+    // Internal End
+
+    /**
+     * Register and get New Page
+     *
+     * @return NewChestGUIPage
+     */
     fun newPage(): ChestGUIPage {
         val page = ChestGUIPage(col)
         pages.add(page)
@@ -139,11 +174,29 @@ class PagedChestGUI(val p: Player, val col: NaturalNumber, val name: String) {
     }
 
     val callbacks: MutableList<(ChestGUIPage, ItemStack) -> Unit> = mutableListOf()
+
+    /**
+     * Register CallBacks
+     * @param ChestGUIPage -> Opening Page
+     * @param ItemStack -> Clicked ItemStack
+     */
+    fun addCallBack(f:(ChestGUIPage, ItemStack) -> Unit){
+        callbacks.add(f)
+    }
 }
 
+/**
+ * GUIPage
+ */
 class ChestGUIPage(val col: NaturalNumber) {
+    /**
+     * Internal Map that stores All ItemStack(GUIObject)
+     */
     private val map: SizedFlatList<GUIObject> = SizedFlatList(NaturalNumber(9), col)
-    var called = 0
+
+    /**
+     * Copy All ItemStacks to ChestGUI
+     */
     fun copyToGUI(chest: ChestGUI) {
         map.forEach {
             // どうせUI描画で呼ばれるので
@@ -151,10 +204,12 @@ class ChestGUIPage(val col: NaturalNumber) {
                 it.t,
                 true
             )
-            called++
         }
     }
 
+    /**
+     * Set ItemStack at (x,y)
+     */
     fun set(x: NaturalNumber, y: NaturalNumber, obj: GUIObject) {
         if (x.i != obj.x.i || y.i != obj.y.i) {
             throw IllegalArgumentException("Position of GUIObject and x,y not matched!")
@@ -164,13 +219,27 @@ class ChestGUIPage(val col: NaturalNumber) {
         }
     }
 
+    /**
+     * Get All Stacks
+     */
     fun get() = map
 
-    fun onClick(inventoryClickEvent: InventoryClickEvent) {
+    /**
+     * Internal onClick Method
+     * Calling All CallBacks
+     */
+    private fun onClick(inventoryClickEvent: InventoryClickEvent) {
         callbacks.forEach {
             it(this, inventoryClickEvent.currentItem!!)
         }
     }
 
     val callbacks: MutableList<(ChestGUIPage, ItemStack) -> Unit> = mutableListOf()
+
+    /**
+     * Register CallBacks
+     */
+    fun addCallBack(f:(ChestGUIPage, ItemStack) -> Unit){
+        callbacks.add(f)
+    }
 }
