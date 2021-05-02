@@ -1,4 +1,4 @@
-package net.kunmc.flylib2.utils
+package com.github.bun133.flylib2.utils
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -77,6 +77,7 @@ class EasySpawner {
             loc.block.type = Material.SPAWNER
             val meta = loc.block.state
             if(meta is CreatureSpawner){
+                meta.spawnedType = type
                 return loc.block
             }
             return null
@@ -104,30 +105,46 @@ class EasySpawner {
  * marker1.isMatched(stack1) // True
  */
 class ItemMarker(private val itemStack:ItemStack,private val plugin:JavaPlugin){
-    private val id = UUID.randomUUID()
+    val id = UUID.randomUUID()
     init {
-        mark(itemStack,id.toString(),"ItemMarker",plugin)
+        mark(itemStack,id.toString(), getKey(plugin))
     }
 
     fun isMatched(other:ItemStack): Boolean {
-        val s = get(other,"ItemMarker",plugin) ?: return false
-        return s === id.toString()
+        val s = get(other, getKey(plugin))
+        return s == id.toString()
     }
 
     companion object{
+        val keys = mutableMapOf<JavaPlugin,NamespacedKey>()
         /**
          * Write Data To ItemStack's PersistentDataContainer
          */
-        fun mark(stack:ItemStack,data:String,key:String,plugin:JavaPlugin){
-            val m = stack.itemMeta
-            val nameKey = NamespacedKey(plugin,key)
-            m.persistentDataContainer.set(nameKey, PersistentDataType.STRING,data)
+        fun mark(stack:ItemStack,data:String,nameKey:NamespacedKey):Boolean{
+            try{
+                val m = stack.itemMeta
+                m.persistentDataContainer.set(nameKey, PersistentDataType.STRING,data)
+                stack.itemMeta = m
+            }catch (e:NullPointerException){
+                return false
+            }
+            return true
         }
 
-        fun get(stack:ItemStack,key:String,plugin:JavaPlugin): String? {
-            val m = stack.itemMeta
-            val nameKey = NamespacedKey(plugin,key)
-            return m.persistentDataContainer.get(nameKey, PersistentDataType.STRING)
+        fun get(stack:ItemStack,nameKey:NamespacedKey): String? {
+            try{
+                return stack.itemMeta.persistentDataContainer.get(nameKey, PersistentDataType.STRING)
+            }catch (e:NullPointerException){
+                return null
+            }
+        }
+
+        fun getKey(plugin:JavaPlugin): NamespacedKey {
+            if(keys.containsKey(plugin)){
+                return keys[plugin]!!
+            }
+            keys[plugin] = NamespacedKey(plugin,"ItemMarker")
+            return keys[plugin]!!
         }
     }
 }
@@ -153,3 +170,5 @@ class CommonItemSet{
         }
     }
 }
+
+// End CommonItemSet
