@@ -64,12 +64,12 @@ class TabChain(vararg obj: TabObject) {
 
     fun isAllMatch(args:Array<String>):Boolean{
         if(args.size != tabObjects.size){
-//            println("tabObjects.size not matched")
+            println("tabObjects.size not matched")
             return false
         }
         args.forEachIndexed { index, s ->
-            if(!tabObjects[index].getAsList().contains(s)){
-//                println("TabObject index:$index ${tabObjects[index].toString()} not containing $s")
+            if(!tabObjects[index].isMatch(s)){
+                println("TabObject index:$index ${tabObjects[index].toString()} not containing $s")
                 return false
             }
         }
@@ -99,7 +99,7 @@ open class TabObject {
     }
 
     // For OverRides
-    internal constructor()
+    constructor()
 
     private val obj = mutableListOf<TabObject>()
     private val s = mutableListOf<String>()
@@ -118,15 +118,25 @@ open class TabObject {
         builder.append("]")
         return builder.toString()
     }
+
+    open fun isMatch(s:String):Boolean{
+        return getAsList().contains(s)
+    }
 }
 
 class TabPart {
     companion object {
-        val selectors = TabObject("@a", "@r", "@s", "@e")
+        val selectors = TabObject("@a", "@r", "@s", "@e","@p")
         val playerSelector = PlayerSelector()
     }
 
     class PlayerSelector() : TabObject() {
         override fun getAsList(): MutableList<String> = Bukkit.getOnlinePlayers().map { it.displayName }.toMutableList()
+    }
+
+    class EmptySelector():TabObject(){
+        override fun isMatch(s: String): Boolean {
+            return true
+        }
     }
 }
