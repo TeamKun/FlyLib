@@ -14,7 +14,8 @@ import org.bukkit.plugin.java.JavaPlugin
 
 class ChestGUI(private val owning: Player, name: String = "Chest", val cols: Int = 4, private val plugin: JavaPlugin) :
     Listener {
-    internal val chest: Inventory
+    @Suppress("MemberVisibilityCanBePrivate")
+    val chest: Inventory
     internal var list = SizedFlatList<GUIEntry?>(9, cols)
 
     init {
@@ -217,7 +218,7 @@ class PagedChestGUI(
             }
         }
         ui.draw(this, plugin)
-        println("Showing:$index")
+//        println("Showing:$index")
     }
 
     fun next() {

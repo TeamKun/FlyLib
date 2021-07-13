@@ -64,12 +64,12 @@ class TabChain(vararg obj: TabObject) {
 
     fun isAllMatch(args:Array<String>):Boolean{
         if(args.size != tabObjects.size){
-            println("tabObjects.size not matched")
+//            println("tabObjects.size not matched")
             return false
         }
         args.forEachIndexed { index, s ->
             if(!tabObjects[index].isMatch(s)){
-                println("TabObject index:$index ${tabObjects[index].toString()} not containing $s")
+//                println("TabObject index:$index ${tabObjects[index].toString()} not containing $s")
                 return false
             }
         }
