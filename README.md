@@ -6,7 +6,7 @@ FlyLibはMinecraft Paperサーバー用のプラグイン開発支援ライブ�
 
 For more details,read [Documentations](https://github.com/TeamKun/FlyLib/tree/flylib-1#documentations)
 <br/>
-詳しくは[Documentations](https://github.com/TeamKun/FlyLib/tree/flylib-1#documentations)をお読みください。
+詳しくは[ドキュメント](https://github.com/TeamKun/FlyLib/tree/flylib-1#documentations)をご覧ください。
 
 # Documentations
 
