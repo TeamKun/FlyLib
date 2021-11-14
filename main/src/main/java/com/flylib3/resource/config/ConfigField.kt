@@ -2,9 +2,9 @@ package com.flylib3.resource.config
 
 import com.flylib3.Disposable
 
-class ConfigField(path: String, private val configManager: ConfigManager) : ConfigUpdateListener, Disposable<Unit> {
+class ConfigField(path: String, private val configLoader: ConfigLoader) : ConfigUpdateListener, Disposable<Unit> {
     init {
-        configManager.listeners.add(this)
+        configLoader.listeners.add(this)
     }
 
     var path = path
@@ -16,16 +16,16 @@ class ConfigField(path: String, private val configManager: ConfigManager) : Conf
     var data: Any? = null
         private set
 
-    override fun onUpdate(config: ConfigManager) {
+    override fun onUpdate(config: ConfigLoader) {
         reload()
     }
 
     private fun reload() {
-        this.data = configManager.config.get(path)
+        this.data = configLoader.config.get(path)
     }
 
     private fun update(o: Any?) {
-        configManager.config.set(path, o)
+        configLoader.config.set(path, o)
     }
 
     fun set(s: Any?) {
@@ -34,6 +34,6 @@ class ConfigField(path: String, private val configManager: ConfigManager) : Conf
     }
 
     override fun dispose(t: Unit) {
-        configManager.listeners.remove(this)
+        configLoader.listeners.remove(this)
     }
 }

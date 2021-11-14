@@ -2,12 +2,12 @@ package com.flylib3.resource
 
 import com.flylib3.FlyLib
 import com.flylib3.FlyLibComponent
-import com.flylib3.resource.config.ConfigManager
+import com.flylib3.resource.config.ConfigLoaderManager
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.InputStream
 
 class ResourceManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
-    val config = ConfigManager(flyLib, this)
+    val config = ConfigLoaderManager(flyLib)
 
     operator fun get(path: String): InputStream? {
         return flyLib.plugin.getResource(path)
@@ -26,9 +26,5 @@ class ResourceManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
         return get(path) {
             return@get YamlConfiguration.loadConfiguration(it.reader())
         }
-    }
-
-    init {
-        config.init()
     }
 }
