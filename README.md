@@ -10,6 +10,6 @@ For more details,read [Documentations](https://github.com/TeamKun/FlyLib/tree/fl
 
 # Documentations
 
-[English Documentation](https://github.com/TeamKun/FlyLib/en.md)
+[English Documentation](https://github.com/TeamKun/FlyLib/blob/main/en.md)
 <br/>
-[Japanese Documentation](https://github.com/TeamKun/FlyLib/jp.md)
+[Japanese Documentation](https://github.com/TeamKun/FlyLib/blob/main/jp.md)
