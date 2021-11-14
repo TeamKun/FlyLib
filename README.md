@@ -10,11 +10,11 @@ For more details,read [Documentations](https://github.com/TeamKun/FlyLib/tree/fl
 
 # Warnings
 
-This Flylib is not enough programmed/constituted.
+This Flylib is **not enough programmed/constituted**.
 <br/>
 Please consider to use [FlyLib-Reloaded](https://github.com/TeamKun/flylib-reloaded).
 <br/>
-FlyLibは深く考えられずに適当に書いた書き散らしのライブラリです。
+FlyLibは**深く考えられずに適当に書いた書き散らし**のライブラリです。
 <br/>
 代わりに[FlyLib-Reloaded](https://github.com/TeamKun/flylib-reloaded)を使用することをご検討ください。
 
