@@ -22,9 +22,14 @@ abstract class Command(flyLib: FlyLib) : CommandExecutor, TabCompleter, FlyLibCo
         args: Array<out String>
     ): MutableList<String>?
 
+    /**
+     * @return true if the sender is allowed to execute this command
+     */
     abstract fun permission(sender: CommandSender): Boolean
 
-    fun permissionMessage(sender: CommandSender) = "Not Enough Permission Error"
+    open fun permissionMessage(sender: CommandSender) {
+        sender.sendMessage("Not Enough Permission Error")
+    }
 
     abstract fun usage(): String
 
