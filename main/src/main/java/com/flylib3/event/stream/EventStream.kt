@@ -7,11 +7,7 @@ import org.bukkit.event.Event
 
 interface EventStreamNode<From : Event, To : Event> {
     var next: EventStreamNode<To, *>?
-    private fun register(next: EventStreamNode<To, Event>) {
-        this.next = next
-    }
-
-    private fun register1(next: EventStreamNode<To, Nothing>) {
+    private fun register(next: EventStreamNode<To, *>) {
         this.next = next
     }
 
@@ -25,12 +21,12 @@ interface EventStreamNode<From : Event, To : Event> {
 
     fun forEach(f: (To) -> Unit) {
         val node = EventStreamForEachOp(f)
-        register1(node)
+        register(node)
     }
 
-    fun filter(f: (To) -> To?): EventStreamFilterOp<To> {
+    fun filter(f: (To) -> Boolean): EventStreamFilterOp<To> {
         val node = EventStreamFilterOp(f)
-        register(node) // TODO なぜかコンパイル通らない(後で考える)
+        register(node)
         return node
     }
 }
@@ -67,19 +63,20 @@ class EventStreamMapOp<From : Event, To : Event>(val mapper: (From) -> To) :
     }
 }
 
-class EventStreamFilterOp<From : Event>(val filter: (From) -> From?) :
+class EventStreamFilterOp<From : Event>(val filter: (From) -> Boolean) :
     EventStreamOperator<From, From>() {
     override fun execute(event: From) {
         val e = filter(event)
-        if (e != null && next != null) {
-            next!!.execute(e)
+        if (e && next != null) {
+            next!!.execute(event)
         }
     }
 }
 
 class EventStreamForEachOp<From : Event>(val f: (From) -> Unit) :
-    EventStreamOperator<From, Nothing>() {
+    EventStreamOperator<From, From>() {
     override fun execute(event: From) {
         f(event)
+        next?.execute(event)
     }
 }
