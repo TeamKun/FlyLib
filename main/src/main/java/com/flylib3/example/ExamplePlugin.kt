@@ -1,8 +1,9 @@
 package com.flylib3.example
 
 import com.flylib3.FlyLibPlugin
-import com.flylib3.command.Command
-import com.flylib3.command.CommandBuilder
+import com.flylib3.test.aCommand
+import com.flylib3.test.executeCommand
+import com.flylib3.util.command
 
 class ExamplePlugin : FlyLibPlugin() {
     override fun onWait() {
@@ -10,21 +11,23 @@ class ExamplePlugin : FlyLibPlugin() {
         // Maybe Command Registers will be here
         super.onWait() // THIS IS NEEDED
 
-        val command = CommandBuilder(flylib)
-            .name("test")
-            .execute { sender, command, label, args ->
-                sender.sendMessage("Hi! From FlyLib3 CommandSystem!")
-                return@execute true
-            }
-            .tabComplete { sender, command, alias, args ->
-                return@tabComplete mutableListOf("TestCompleter")
-            }
-            .permission { it.isOp }
-            .permissionMessage { it.sendMessage("You don't have enough Permission") }
-            .usage("/<command>")
-            .buildForce()
+        command("testCommand") {
+            part<String>("String", "String2") {
+                part<Int>(1, 2, 3) {
+                    terminal {
+                        usage("This is Usage")
+                        permission { commandSender -> commandSender.isOp }
+                        execute(::executeCommand)
+                    }
+                }
 
-        flylib.command.register(command)
+                part<String>("A") {
+                    terminal {
+                        execute(::aCommand)
+                    }
+                }
+            }
+        }
     }
 
     override fun onPrepare() {

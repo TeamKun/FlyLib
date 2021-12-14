@@ -4,7 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin
 
 open class FlyLibPlugin : JavaPlugin() {
     @Suppress("LeakingThis")
-    protected val flylib: FlyLib = flylib(this)
+    val flylib: FlyLib = flylib(this)
 
     override fun onEnable() {
         flylib.lifeCycle.onEnable()

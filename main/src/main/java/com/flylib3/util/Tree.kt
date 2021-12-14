@@ -1,11 +1,9 @@
 package com.flylib3.util
 
-import org.bukkit.Warning
-
 /**
  * Class define Tree-Graph Start Point
  */
-class Tree<T> : TreeEntry<T>() {
+open class Tree<T> : TreeEntry<T>() {
     fun findAll(child: TreeEntry<T>): MutableList<TreeEntry<T>> {
         return findAll { it == child }
     }

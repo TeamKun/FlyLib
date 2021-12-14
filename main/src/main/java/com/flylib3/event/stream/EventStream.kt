@@ -3,6 +3,7 @@ package com.flylib3.event.stream
 import com.flylib3.FlyLib
 import com.flylib3.FlyLibComponent
 import com.flylib3.event.SimpleFListener
+import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
 
 interface EventStreamNode<From : Event, To : Event> {
@@ -29,6 +30,12 @@ interface EventStreamNode<From : Event, To : Event> {
         register(node)
         return node
     }
+
+//    fun <T> cancel(): EventStreamCancelOp<T> where T : Cancellable, T : To {
+//        val node = EventStreamCancelOp<T>()
+//        register(node)
+//        return node
+//    }
 }
 
 class EventStreamStarter<T : Event>(flyLib: FlyLib) : FlyLibComponent(flyLib), EventStreamNode<T, T> {
@@ -77,6 +84,13 @@ class EventStreamForEachOp<From : Event>(val f: (From) -> Unit) :
     EventStreamOperator<From, From>() {
     override fun execute(event: From) {
         f(event)
+        next?.execute(event)
+    }
+}
+
+class EventStreamCancelOp<From>() : EventStreamOperator<From, From>() where From : Cancellable, From : Event {
+    override fun execute(event: From) {
+        event.isCancelled = true
         next?.execute(event)
     }
 }

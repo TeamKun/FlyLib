@@ -7,7 +7,7 @@ import org.bukkit.command.PluginCommand
 /**
  * Class That Provides Permission Check,Args Check etc.
  */
-class CommandExecutorProxy(private val command: Command) : CommandExecutor {
+class CommandExecutorProxy(private val command: FCommand) : CommandExecutor {
     override fun onCommand(
         sender: CommandSender,
         command: org.bukkit.command.Command,
