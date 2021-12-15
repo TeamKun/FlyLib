@@ -202,7 +202,7 @@ class BuiltFPathCommand(
                 // Some Argument is not appropriate
                 return false
             }
-            return e.call(*translatedNotNull.toTypedArray())
+            return e.call(FCommandEvent(sender,fCommandBuilderPath),*translatedNotNull.toTypedArray())
         } else {
             // Executor Not Set
             return true
