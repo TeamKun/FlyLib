@@ -4,9 +4,7 @@ import com.flylib3.FlyLib
 import com.flylib3.FlyLibComponent
 
 class CommandManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
-    // Usually,All Commands will be called through Proxy
-    // All Proxies are registered here
-    val proxy = mutableListOf<CommandExecutorProxy>()
+    val commands = mutableListOf<FCommand>()
 
     fun register(command: FCommand) {
         val c = flyLib.plugin.getCommand(command.name)
@@ -15,11 +13,10 @@ class CommandManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
             // TODO Auto Write and Add Statements of Command,then save it and reboot the server
 //            flyLib.plugin.description.commands
         } else {
-            val commandProxy = CommandExecutorProxy(command)
-            commandProxy.register(c)
-            proxy.add(commandProxy)
+            commands.add(command)
+            c.setExecutor(command)
+            c.tabCompleter = command
+            // TODO Register Usage Help Command
         }
     }
-
-    fun register(command: FlyLib.() -> FCommand) = register(command(flyLib))
 }

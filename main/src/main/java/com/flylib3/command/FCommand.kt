@@ -9,16 +9,15 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
-import java.lang.Exception
+import kotlin.Exception
 import kotlin.reflect.KCallable
 import kotlin.reflect.full.createType
 
 abstract class FCommand : CommandExecutor, TabCompleter, UsageProvider {
     abstract val name: String
     abstract val alias: List<String>
-
-    abstract fun permission(sender: CommandSender): Boolean
-    abstract fun permissionMessage(sender: CommandSender)
+    abstract fun permission(sender: CommandSender, args: Array<out String>): Boolean
+    abstract fun permissionMessage(sender: CommandSender, args: Array<out String>)
 }
 
 class FCommandBuilder(
@@ -46,8 +45,14 @@ class FCommandBuilder(
         lambda(root)
     }
 
+    private fun exportIntoOne(): BuiltFCommand {
+        val commands = partCommands.toMutableList()
+        return BuiltFCommand(*commands.toTypedArray())
+    }
+
     private fun registerAll() {
-        // TODO Register Command
+        val exported = exportIntoOne()
+        flyLib.command.register(exported)
     }
 }
 
@@ -158,7 +163,7 @@ class BuiltFPathCommand(
         return part.values.any { part.typeMatcher.isMatch(str) }
     }
 
-    private fun isMatchAll(args: Array<out String>): Boolean {
+    fun isMatchAll(args: Array<out String>): Boolean {
         if (args.size != parts.size) {
             return false
         }
@@ -173,15 +178,19 @@ class BuiltFPathCommand(
     override val name: String = commandName
     override val alias: List<String> = alias.toList()
 
-    override fun permission(sender: CommandSender): Boolean {
+    override fun permission(sender: CommandSender, args: Array<out String>): Boolean {
         return fCommandBuilderPath.permissionLambda(sender)
     }
 
-    override fun permissionMessage(sender: CommandSender) {
+    override fun permissionMessage(sender: CommandSender, args: Array<out String>) {
         sender.sendMessage("" + ChatColor.RED + "You don't have enough permission")
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+        if (!permission(sender, args)) {
+            permissionMessage(sender, args)
+            return true
+        }
         return if (isMatchAll(args)) {
             execute(sender, command, label, args)
             true
@@ -202,7 +211,7 @@ class BuiltFPathCommand(
                 // Some Argument is not appropriate
                 return false
             }
-            return e.call(FCommandEvent(sender,fCommandBuilderPath),*translatedNotNull.toTypedArray())
+            return e.call(FCommandEvent(sender, fCommandBuilderPath), *translatedNotNull.toTypedArray())
         } else {
             // Executor Not Set
             return true
@@ -230,4 +239,109 @@ class BuiltFPathCommand(
     override fun usage(): Usage {
         TODO()
     }
+}
+
+class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
+    init {
+        require(command.none { command[0].name != it.name })
+        require(command.none { command[0].alias != it.alias })
+    }
+
+    override val name: String = command[0].name
+    override val alias: List<String> = command[0].alias
+
+    override fun permission(sender: CommandSender, args: Array<out String>): Boolean {
+        return when (val matched = getMatched(args)) {
+            is BuiltFPathCommand -> {
+                matched.permission(sender, args)
+            }
+            is BuiltFCommand -> {
+                throw Exception("in BuiltFCommand#permission command path is duplicated")
+            }
+            null -> {
+                false   // Nothing matched
+            }
+            else -> {
+                throw Exception("in BuiltFCommand#permission not expected matched command")
+            }
+        }
+    }
+
+    override fun permissionMessage(sender: CommandSender, args: Array<out String>) {
+        when (val matched = getMatched(args)) {
+            is BuiltFPathCommand -> {
+                matched.permissionMessage(sender, args)
+            }
+            is BuiltFCommand -> {
+                throw Exception("in BuiltFCommand#permissionMessage command path is duplicated")
+            }
+            null -> {
+                // None Matched
+                return
+            }
+            else -> {
+                throw Exception("in BuiltFCommand#permission not expected matched command")
+            }
+        }
+    }
+
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+        return when (val matched = getMatched(args)) {
+            is BuiltFPathCommand -> {
+                matched.onCommand(sender, command, label, args)
+            }
+            is BuiltFCommand -> {
+                // Many is Matched
+                return false
+            }
+            null -> {
+                // None Matched
+                return false
+            }
+            else -> {
+                throw Exception("in BuiltFCommand#permission not expected matched command")
+            }
+        }
+    }
+
+    override fun onTabComplete(
+        sender: CommandSender,
+        command: Command,
+        alias: String,
+        args: Array<out String>
+    ): MutableList<String>? {
+        return when (val matched = getMatched(args)) {
+            is BuiltFPathCommand -> {
+                matched.onTabComplete(sender, command, alias, args)
+            }
+            is BuiltFCommand -> {
+                return matched.command.mapNotNull { it.onTabComplete(sender, command, alias, args) }.flatten()
+                    .distinct().toMutableList()
+            }
+            null -> {
+                // None Matched
+                return mutableListOf()
+            }
+            else -> {
+                throw Exception("in BuiltFCommand#permission not expected matched command")
+            }
+        }
+    }
+
+    override fun usage(): Usage {
+        TODO("Not yet implemented")
+    }
+
+    private fun getMatched(args: Array<out String>): FCommand? {
+        val matched = command.filter { it.isMatchAll(args) }
+        if (matched.isEmpty()) {
+            return null
+        } else if (matched.size == 1) {
+            return matched[0]
+        } else {
+            return BuiltFCommand(*matched.toTypedArray())
+        }
+    }
+
+    private fun isSingle(command: FCommand) = command is BuiltFPathCommand
 }
