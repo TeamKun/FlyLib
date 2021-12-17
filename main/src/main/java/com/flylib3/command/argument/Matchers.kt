@@ -27,7 +27,13 @@ abstract class Matcher<T> {
 abstract class TypeMatcher<T : Any> : Matcher<T>() {
     companion object {
         val all =
-            listOf({ IntTypeMatcher() }, { FloatTypeMatcher() }, { DoubleTypeMatcher() }, { LongTypeMatcher() })
+            listOf(
+                { IntTypeMatcher() },
+                { FloatTypeMatcher() },
+                { DoubleTypeMatcher() },
+                { LongTypeMatcher() },
+                { StringTypeMatcher() }
+            )
 
         fun getTypeMatcher(vararg str: String): List<TypeMatcher<out Any>> {
             return all.map { it() }.filter { parser -> str.all { parser.parse(it) != null } }
@@ -84,4 +90,16 @@ class LongTypeMatcher : TypeMatcher<Long>() {
     }
 
     override val type: KClass<Long> = Long::class
+}
+
+class StringTypeMatcher : TypeMatcher<String>() {
+    override fun isMatch(arg: String): Boolean {
+        return true
+    }
+
+    override fun parse(arg: String): String {
+        return arg
+    }
+
+    override val type: KClass<String> = String::class
 }
