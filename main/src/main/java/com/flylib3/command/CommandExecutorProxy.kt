@@ -14,9 +14,9 @@ class CommandExecutorProxy(private val command: FCommand) : CommandExecutor {
         label: String,
         args: Array<out String>
     ): Boolean {
-        if (!this.command.permission(sender)) {
+        if (!this.command.permission(sender, args)) {
             // Sender don't have enough permission to execute
-            this.command.permissionMessage(sender)
+            this.command.permissionMessage(sender, args)
             return false
         }
 
