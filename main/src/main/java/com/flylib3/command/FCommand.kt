@@ -32,7 +32,7 @@ class FCommandBuilder(
             alias: List<String> = listOf(),
             lambda: FCommandBuilder.() -> Unit
         ) {
-            val builder = FCommandBuilder(flyLib, commandName, alias)
+            val builder = FCommandBuilder(flyLib, commandName.lowercase(), alias)
             lambda(builder)
             builder.registerAll()
         }
@@ -75,7 +75,7 @@ class FCommandBuilderPart<T : Any>(
     }
 
     val tType = values[0]::class.createType()
-    val typeMatcher = TypeMatcher.getTypeMatcherForce(tType)
+    val typeMatcher = TypeMatcher.getTypeMatcherForce(tType) as TypeMatcher<T>   // Checked
     fun <R : Any> part(vararg r: R, lambda: FCommandBuilderPart<R>.() -> Unit) {
         val entry = FCommandBuilderPart<R>(this, flyLib, builder, *r)
         lambda(entry)
@@ -159,8 +159,13 @@ class BuiltFPathCommand(
     vararg alias: String
 ) :
     FCommand() {
-    private fun isMatch(part: FCommandBuilderPart<*>, str: String): Boolean {
-        return part.values.any { part.typeMatcher.isMatch(str) }
+    private fun <T : Any> isMatch(part: FCommandBuilderPart<T>, str: String): Boolean {
+        val t: T? = part.typeMatcher.parse(str)
+        if (t == null) {
+            return false
+        } else {
+            return part.values.contains(t)
+        }
     }
 
     fun isMatchAll(args: Array<out String>): Boolean {
@@ -286,7 +291,9 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-        return when (val matched = getMatched(args)) {
+        val matched = getMatched(args)
+        println("[Matched]:${matched}")
+        return when (matched) {
             is BuiltFPathCommand -> {
                 matched.onCommand(sender, command, label, args)
             }
@@ -335,10 +342,13 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
     private fun getMatched(args: Array<out String>): FCommand? {
         val matched = command.filter { it.isMatchAll(args) }
         if (matched.isEmpty()) {
+//            println("None Matched")
             return null
         } else if (matched.size == 1) {
+//            println("One:${matched[0]} Matched")
             return matched[0]
         } else {
+//            println("${matched.size} Matched")
             return BuiltFCommand(*matched.toTypedArray())
         }
     }

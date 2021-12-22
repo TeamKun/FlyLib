@@ -1,0 +1,8 @@
+# Dummy Plugin Yaml File
+name: FlyLibTest
+version: '${project.version}'
+main: com.flylib3.test.CommandGenerateTestPlugin
+api-version: 1.16
+authors: [ Bun133 ]
+commands:
+  testCommand:

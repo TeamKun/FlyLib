@@ -1,10 +1,32 @@
 package com.flylib3.test
 
-import com.flylib3.FlyLib
+import com.flylib3.FlyLibPlugin
 import com.flylib3.event.ex.FCommandEvent
+import com.flylib3.util.command
 
-fun main() {
+/**
+ *  PASSED AT 17:26 2021/12/22
+ */
+class CommandGenerateTestPlugin() : FlyLibPlugin() {
+    override fun onEnable() {
+        command("testCommand") {
+            part<String>("String", "String2") {
+                part<Int>(1, 2, 3) {
+                    terminal {
+                        usage("This is Usage")
+                        permission { commandSender -> commandSender.isOp }
+                        execute(::executeCommand)
+                    }
+                }
 
+                part<String>("A") {
+                    terminal {
+                        execute(::aCommand)
+                    }
+                }
+            }
+        }
+    }
 }
 
 fun executeCommand(event: FCommandEvent, str: String, int: Int): Boolean {
