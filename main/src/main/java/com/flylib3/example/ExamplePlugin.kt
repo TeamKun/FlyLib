@@ -1,9 +1,9 @@
 package com.flylib3.example
 
 import com.flylib3.FlyLibPlugin
-import com.flylib3.test.aCommand
-import com.flylib3.test.executeCommand
+import com.flylib3.event.ex.FCommandEvent
 import com.flylib3.util.command
+import java.time.LocalDate
 
 class ExamplePlugin : FlyLibPlugin() {
     override fun onWait() {
@@ -16,18 +16,29 @@ class ExamplePlugin : FlyLibPlugin() {
                 part<Int>(1, 2, 3) {
                     terminal {
                         usage("This is Usage")
-                        permission { commandSender -> commandSender.isOp }
-                        execute(::executeCommand)
+                        permission { commandSender, _, _, _ -> commandSender.isOp }
+                        execute(ExamplePlugin::executeCommand)
                     }
                 }
 
                 part<String>("A") {
                     terminal {
-                        execute(::aCommand)
+                        execute(ExamplePlugin::aCommand)
                     }
                 }
             }
         }
+    }
+
+    fun executeCommand(event: FCommandEvent, str: String, int: Int): Boolean {
+        println("Execute Part")
+        event.commandSender.sendMessage("str:$str,int:$int")
+        return true
+    }
+
+    fun aCommand(event: FCommandEvent, str: String, str2: String): Boolean {
+        event.commandSender.sendMessage("A!")
+        return true
     }
 
     override fun onPrepare() {

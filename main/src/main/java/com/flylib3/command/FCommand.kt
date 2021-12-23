@@ -9,15 +9,17 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
+import org.jetbrains.annotations.NotNull
 import kotlin.Exception
 import kotlin.reflect.KCallable
+import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 
 abstract class FCommand : CommandExecutor, TabCompleter, UsageProvider {
     abstract val name: String
     abstract val alias: List<String>
-    abstract fun permission(sender: CommandSender, args: Array<out String>): Boolean
-    abstract fun permissionMessage(sender: CommandSender, args: Array<out String>)
+    abstract fun permission(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean
+    abstract fun permissionMessage(sender: CommandSender, command: Command, label: String, args: Array<out String>)
 }
 
 class FCommandBuilder(
@@ -45,6 +47,21 @@ class FCommandBuilder(
         lambda(root)
     }
 
+    fun <T : Any> part(
+        type: KType,
+        lazyValues: (
+            CommandSender,
+            Command,
+            String,
+            Array<out String>
+        ) -> List<T>,
+        lazyParser: (String) -> T?,
+        lambda: FCommandBuilderPart<T>.() -> Unit
+    ) {
+        val root = FCommandBuilderPart<T>(null, flyLib, lazyValues, lazyParser, this, type)
+        lambda(root)
+    }
+
     private fun exportIntoOne(): BuiltFCommand {
         val commands = partCommands.toMutableList()
         return BuiltFCommand(*commands.toTypedArray())
@@ -56,11 +73,22 @@ class FCommandBuilder(
     }
 }
 
+/**
+ * @param tType KType of Generics
+ * @param lazyValues Array<out String> is the arguments "BEFORE" this part
+ */
 class FCommandBuilderPart<T : Any>(
     val parent: FCommandBuilderPart<*>?,
     flyLib: FlyLib,
-    val values: List<T>,
-    val builder: FCommandBuilder
+    val lazyValues: (
+        CommandSender,
+        Command,
+        String,
+        Array<out String>
+    ) -> List<T>,
+    val lazyParser: (String) -> T?,
+    val builder: FCommandBuilder,
+    val tType: KType
 ) :
     FlyLibComponent(flyLib) {
     constructor(parent: FCommandBuilderPart<*>?, flyLib: FlyLib, builder: FCommandBuilder, vararg values: T) : this(
@@ -70,15 +98,33 @@ class FCommandBuilderPart<T : Any>(
         builder
     )
 
-    init {
-        require(values.isNotEmpty())
-    }
+    constructor(parent: FCommandBuilderPart<*>?, flyLib: FlyLib, values: List<T>, builder: FCommandBuilder) : this(
+        parent,
+        flyLib,
+        lazyValues = { a, b, c, d -> values },
+        (TypeMatcher.getTypeMatcherForce(values[0]::class.createType()) as TypeMatcher<T>).getAsLambda(), // Checked
+        builder,
+        values[0]::class.createType()
+    )
 
-    val tType = values[0]::class.createType()
-    val typeMatcher = TypeMatcher.getTypeMatcherForce(tType) as TypeMatcher<T>   // Checked
     fun <R : Any> part(vararg r: R, lambda: FCommandBuilderPart<R>.() -> Unit) {
         val entry = FCommandBuilderPart<R>(this, flyLib, builder, *r)
         lambda(entry)
+    }
+
+    fun <R : Any> part(
+        type: KType,
+        lazyValues: (
+            CommandSender,
+            Command,
+            String,
+            Array<out String>
+        ) -> List<R>,
+        lazyParser: (String) -> R?,
+        lambda: FCommandBuilderPart<R>.() -> Unit
+    ) {
+        val root = FCommandBuilderPart<R>(this, flyLib, lazyValues, lazyParser, builder, type)
+        lambda(root)
     }
 
     fun terminal(lambda: FCommandBuilderPath.() -> Unit) {
@@ -109,7 +155,7 @@ class FCommandBuilderPath(val bottom: FCommandBuilderPart<*>, flyLib: FlyLib, va
 
     var usageString = listOf<String>()
         private set
-    var permissionLambda: (CommandSender) -> Boolean = { true }
+    var permissionLambda: (CommandSender, Command, String, Array<out String>) -> Boolean = { _, _, _, _ -> true }
         private set
     var executor: KCallable<Boolean>? = null
         private set
@@ -118,7 +164,7 @@ class FCommandBuilderPath(val bottom: FCommandBuilderPart<*>, flyLib: FlyLib, va
         usageString = str.toMutableList()
     }
 
-    fun permission(lambda: (CommandSender) -> Boolean) {
+    fun permission(lambda: (CommandSender, Command, String, Array<out String>) -> Boolean) {
         permissionLambda = lambda
     }
 
@@ -159,21 +205,34 @@ class BuiltFPathCommand(
     vararg alias: String
 ) :
     FCommand() {
-    private fun <T : Any> isMatch(part: FCommandBuilderPart<T>, str: String): Boolean {
-        val t: T? = part.typeMatcher.parse(str)
-        if (t == null) {
+    private fun <T : Any> isMatch(
+        part: FCommandBuilderPart<T>,
+        sender: CommandSender,
+        command: Command,
+        label: String,
+        args: Array<String>,
+        str: String
+    ): Boolean {
+        try {
+            val t: T? = part.lazyParser(str)
+            if (t == null) {
+                return false
+            } else {
+                // Type is Same
+                return part.lazyValues(sender, command, label, args).contains(t)
+            }
+        } catch (e: Exception) {
+            // Something happened in Parsing String
             return false
-        } else {
-            return part.values.contains(t)
         }
     }
 
-    fun isMatchAll(args: Array<out String>): Boolean {
+    fun isMatchAll(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.size != parts.size) {
             return false
         }
         for (i in 0..args.lastIndex) {
-            if (!isMatch(parts[i], args[i])) {
+            if (!isMatch(parts[i], sender, command, label, getArgsBeforeIndexPart(args, i), args[i])) {
                 return false
             }
         }
@@ -183,20 +242,20 @@ class BuiltFPathCommand(
     override val name: String = commandName
     override val alias: List<String> = alias.toList()
 
-    override fun permission(sender: CommandSender, args: Array<out String>): Boolean {
-        return fCommandBuilderPath.permissionLambda(sender)
+    override fun permission(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+        return fCommandBuilderPath.permissionLambda(sender, command, label, args)
     }
 
-    override fun permissionMessage(sender: CommandSender, args: Array<out String>) {
+    override fun permissionMessage(sender: CommandSender, command: Command, label: String, args: Array<out String>) {
         sender.sendMessage("" + ChatColor.RED + "You don't have enough permission")
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-        if (!permission(sender, args)) {
-            permissionMessage(sender, args)
+        if (!permission(sender, command, label, args)) {
+            permissionMessage(sender, command, label, args)
             return true
         }
-        return if (isMatchAll(args)) {
+        return if (isMatchAll(sender, command, label, args)) {
             execute(sender, command, label, args)
             true
         } else {
@@ -209,7 +268,7 @@ class BuiltFPathCommand(
             val e = fCommandBuilderPath.executor!!
             val translated = mutableListOf<Any?>()
             for (i in 0..args.lastIndex) {
-                translated.add(parts[i].typeMatcher.parse(args[i]))
+                translated.add(parts[i].lazyParser(args[i]))
             }
             val translatedNotNull = translated.filterNotNull()
             if (translated.size != translatedNotNull.size) {
@@ -234,11 +293,26 @@ class BuiltFPathCommand(
             return null
         }
         for (i in 0..args.lastIndex) {
-            if (!isMatch(parts[i], args[i])) {
+            if (!isMatch(
+                    parts[i],
+                    sender,
+                    command,
+                    alias,
+                    getArgsBeforeIndexPart(args, i),
+                    args[i]
+                )
+            ) {
                 return null
             }
         }
-        return parts[args.lastIndex].values.map { it.toString() }.toMutableList()
+        return parts[args.lastIndex].lazyValues(sender, command, alias, args).map { it.toString() }.toMutableList()
+    }
+
+    private fun getArgsBeforeIndexPart(args: Array<out String>, index: Int): Array<String> {
+        return if (index == 0)
+            arrayOf<String>()
+        else
+            args.toMutableList().slice(0 until index).toTypedArray()
     }
 
     override fun usage(): Usage {
@@ -255,10 +329,10 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
     override val name: String = command[0].name
     override val alias: List<String> = command[0].alias
 
-    override fun permission(sender: CommandSender, args: Array<out String>): Boolean {
-        return when (val matched = getMatched(args)) {
+    override fun permission(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+        return when (val matched = getMatched(sender, command, label, args)) {
             is BuiltFPathCommand -> {
-                matched.permission(sender, args)
+                matched.permission(sender, command, label, args)
             }
             is BuiltFCommand -> {
                 throw Exception("in BuiltFCommand#permission command path is duplicated")
@@ -272,10 +346,10 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
         }
     }
 
-    override fun permissionMessage(sender: CommandSender, args: Array<out String>) {
-        when (val matched = getMatched(args)) {
+    override fun permissionMessage(sender: CommandSender, command: Command, label: String, args: Array<out String>) {
+        when (val matched = getMatched(sender, command, label, args)) {
             is BuiltFPathCommand -> {
-                matched.permissionMessage(sender, args)
+                matched.permissionMessage(sender, command, label, args)
             }
             is BuiltFCommand -> {
                 throw Exception("in BuiltFCommand#permissionMessage command path is duplicated")
@@ -291,7 +365,7 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-        val matched = getMatched(args)
+        val matched = getMatched(sender, command, label, args)
         println("[Matched]:${matched}")
         return when (matched) {
             is BuiltFPathCommand -> {
@@ -317,7 +391,7 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
         alias: String,
         args: Array<out String>
     ): MutableList<String>? {
-        return when (val matched = getMatched(args)) {
+        return when (val matched = getMatched(sender, command, alias, args)) {
             is BuiltFPathCommand -> {
                 matched.onTabComplete(sender, command, alias, args)
             }
@@ -339,8 +413,8 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
         TODO("Not yet implemented")
     }
 
-    private fun getMatched(args: Array<out String>): FCommand? {
-        val matched = command.filter { it.isMatchAll(args) }
+    private fun getMatched(sender: CommandSender, command: Command, label: String, args: Array<out String>): FCommand? {
+        val matched = this.command.filter { it.isMatchAll(sender, command, label, args) }
         if (matched.isEmpty()) {
 //            println("None Matched")
             return null

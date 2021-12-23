@@ -26,14 +26,22 @@ abstract class Matcher<T> {
 
 abstract class TypeMatcher<T : Any> : Matcher<T>() {
     companion object {
-        val all =
-            listOf(
+        val all: MutableList<() -> TypeMatcher<out Any>> =
+            mutableListOf(
                 { IntTypeMatcher() },
                 { FloatTypeMatcher() },
                 { DoubleTypeMatcher() },
                 { LongTypeMatcher() },
                 { StringTypeMatcher() }
             )
+
+        /**
+         * @note If you made your own type/typeMatcher,You need to Register That
+         * @note You can use lambda expression into FCommandBuilder.part(HERE)
+         */
+        fun register(matcher: () -> TypeMatcher<out Any>) {
+            all.add(matcher)
+        }
 
         fun getTypeMatcher(vararg str: String): List<TypeMatcher<out Any>> {
             return all.map { it() }.filter { parser -> str.all { parser.parse(it) != null } }
@@ -54,6 +62,8 @@ abstract class TypeMatcher<T : Any> : Matcher<T>() {
     }
 
     abstract val type: KClass<T>
+
+    fun getAsLambda(): (String) -> T? = { parse(it) }
 }
 
 class IntTypeMatcher : TypeMatcher<Int>() {
@@ -102,4 +112,16 @@ class StringTypeMatcher : TypeMatcher<String>() {
     }
 
     override val type: KClass<String> = String::class
+}
+
+class LazyTypeMatcher<T : Any>(val lazyParser: (String) -> T?, val kClass: KClass<T>) : TypeMatcher<T>() {
+    override fun isMatch(arg: String): Boolean {
+        return parse(arg) != null
+    }
+
+    override fun parse(arg: String): T? {
+        return lazyParser(arg)
+    }
+
+    override val type: KClass<T> = kClass
 }
