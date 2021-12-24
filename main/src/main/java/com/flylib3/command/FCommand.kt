@@ -4,12 +4,12 @@ import com.flylib3.FlyLib
 import com.flylib3.FlyLibComponent
 import com.flylib3.command.argument.TypeMatcher
 import com.flylib3.event.ex.FCommandEvent
+import com.flylib3.util.allIndexed
 import org.bukkit.ChatColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
-import org.jetbrains.annotations.NotNull
 import kotlin.Exception
 import kotlin.reflect.KCallable
 import kotlin.reflect.KType
@@ -227,6 +227,28 @@ class BuiltFPathCommand(
         }
     }
 
+    private fun <T : Any> isPartlyMatch(
+        part: FCommandBuilderPart<T>,
+        sender: CommandSender,
+        command: Command,
+        label: String,
+        args: Array<String>,
+        str: String
+    ): Boolean {
+        try {
+            val t: T? = part.lazyParser(str)
+            if (t == null) {
+                return false
+            } else {
+                // Type is Same
+                return part.lazyValues(sender, command, label, args).any { it.toString().startsWith(str) }
+            }
+        } catch (e: Exception) {
+            // Something happened in Parsing String
+            return false
+        }
+    }
+
     fun isMatchAll(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.size != parts.size) {
             return false
@@ -288,24 +310,52 @@ class BuiltFPathCommand(
         alias: String,
         args: Array<out String>
     ): MutableList<String>? {
-        if (args.size >= parts.size) {
-            // This provides nothing
-            return null
-        }
-        for (i in 0..args.lastIndex) {
-            if (!isMatch(
-                    parts[i],
-                    sender,
-                    command,
-                    alias,
-                    getArgsBeforeIndexPart(args, i),
-                    args[i]
-                )
-            ) {
+        if (args.isEmpty()) {
+            // Only Command Name
+            return parts[0].lazyValues(sender, command, alias, arrayOf()).map { it.toString() }.toMutableList()
+        } else {
+            // Excluded for Command Label and Last one
+            val argsWithoutLast = args.slice(0 until args.lastIndex)
+            if (argsWithoutLast.allIndexed { s, i ->
+                    isMatch(
+                        parts[i],
+                        sender,
+                        command,
+                        alias,
+                        getArgsBeforeIndexPart(args, i),
+                        s
+                    )
+                }) {
+                // Except for Last one,all matched
+                if (isMatch(
+                        parts[args.lastIndex],
+                        sender,
+                        command,
+                        alias,
+                        getArgsBeforeIndexPart(args, args.lastIndex),
+                        args.last()
+                    )
+                ) {
+                    // The last one is also match
+                    // return the next one if exist
+                    if (parts.lastIndex >= args.lastIndex + 1) {
+                        return parts[args.lastIndex + 1].lazyValues(sender, command, alias, args)
+                            .map { it.toString() }.toMutableList()
+                    } else {
+                        // Not Exist
+                        return null
+                    }
+                } else {
+                    // Not Last one is matched
+                    // Return filtered values
+                    return parts[args.lastIndex].lazyValues(sender, command, alias, args)
+                        .map { it.toString() }.filter { it.startsWith(args.last()) }.toMutableList()
+                }
+            } else {
+                // Not Matched even except for last one
                 return null
             }
         }
-        return parts[args.lastIndex].lazyValues(sender, command, alias, args).map { it.toString() }.toMutableList()
     }
 
     private fun getArgsBeforeIndexPart(args: Array<out String>, index: Int): Array<String> {
@@ -390,23 +440,9 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
         command: Command,
         alias: String,
         args: Array<out String>
-    ): MutableList<String>? {
-        return when (val matched = getMatched(sender, command, alias, args)) {
-            is BuiltFPathCommand -> {
-                matched.onTabComplete(sender, command, alias, args)
-            }
-            is BuiltFCommand -> {
-                return matched.command.mapNotNull { it.onTabComplete(sender, command, alias, args) }.flatten()
-                    .distinct().toMutableList()
-            }
-            null -> {
-                // None Matched
-                return mutableListOf()
-            }
-            else -> {
-                throw Exception("in BuiltFCommand#permission not expected matched command")
-            }
-        }
+    ): MutableList<String> {
+        return this.command.mapNotNull { it.onTabComplete(sender, command, alias, args) }.flatten().distinct()
+            .toMutableList()
     }
 
     override fun usage(): Usage {
