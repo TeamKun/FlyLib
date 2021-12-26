@@ -4,7 +4,7 @@ import com.flylib3.FlyLib
 import com.flylib3.FlyLibComponent
 import org.bukkit.configuration.file.YamlConfiguration
 
-class ConfigLoader(flyLib: FlyLib, val fileName: String) : FlyLibComponent(flyLib) {
+class ConfigLoader(override val flyLib: FlyLib, val fileName: String) : FlyLibComponent {
     private val resource = flyLib.resource
 
     lateinit var config: YamlConfiguration

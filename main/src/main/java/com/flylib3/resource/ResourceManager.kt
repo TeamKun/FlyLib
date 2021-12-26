@@ -6,7 +6,7 @@ import com.flylib3.resource.config.ConfigLoaderManager
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.InputStream
 
-class ResourceManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
+class ResourceManager(override val flyLib: FlyLib) : FlyLibComponent {
     val config = ConfigLoaderManager(flyLib)
 
     operator fun get(path: String): InputStream? {

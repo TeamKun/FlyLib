@@ -2,7 +2,7 @@ package com.flylib3
 
 import java.lang.Exception
 
-class FlyLibLogger(flyLib: FlyLib) : FlyLibComponent(flyLib) {
+class FlyLibLogger(override val flyLib: FlyLib) : FlyLibComponent {
     fun fine(s: String) {
         flyLib.plugin.logger.fine(s)
     }

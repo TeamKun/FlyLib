@@ -23,10 +23,10 @@ abstract class FCommand : CommandExecutor, TabCompleter, UsageProvider {
 }
 
 class FCommandBuilder(
-    flyLib: FlyLib,
+    override val flyLib: FlyLib,
     val commandName: String,
     val alias: List<String> = listOf()
-) : FlyLibComponent(flyLib) {
+) : FlyLibComponent {
     companion object {
         fun command(
             flyLib: FlyLib,
@@ -79,7 +79,7 @@ class FCommandBuilder(
  */
 class FCommandBuilderPart<T : Any>(
     val parent: FCommandBuilderPart<*>?,
-    flyLib: FlyLib,
+    override val flyLib: FlyLib,
     val lazyValues: (
         CommandSender,
         Command,
@@ -90,7 +90,7 @@ class FCommandBuilderPart<T : Any>(
     val builder: FCommandBuilder,
     val tType: KType
 ) :
-    FlyLibComponent(flyLib) {
+    FlyLibComponent {
     constructor(parent: FCommandBuilderPart<*>?, flyLib: FlyLib, builder: FCommandBuilder, vararg values: T) : this(
         parent,
         flyLib,
@@ -134,8 +134,11 @@ class FCommandBuilderPart<T : Any>(
     }
 }
 
-class FCommandBuilderPath(val bottom: FCommandBuilderPart<*>, flyLib: FlyLib, val builder: FCommandBuilder) :
-    FlyLibComponent(flyLib) {
+class FCommandBuilderPath(
+    val bottom: FCommandBuilderPart<*>,
+    override val flyLib: FlyLib,
+    val builder: FCommandBuilder
+) : FlyLibComponent {
     fun getAll(): List<FCommandBuilderPart<*>> {
         val list = mutableListOf<FCommandBuilderPart<*>>()
         var e: FCommandBuilderPart<*>? = null

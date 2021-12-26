@@ -3,7 +3,7 @@ package com.flylib3.lifecycle
 import com.flylib3.FlyLib
 import com.flylib3.FlyLibComponent
 
-class LifeCycleManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
+class LifeCycleManager(override val flyLib: FlyLib) : FlyLibComponent {
     var now: LifeCycleState = LifeCycles.Init.lifeCycle()
         private set
 

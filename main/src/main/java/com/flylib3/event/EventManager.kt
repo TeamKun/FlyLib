@@ -7,7 +7,7 @@ import com.flylib3.event.stream.EventStreamStarter
 import org.bukkit.event.Event
 import kotlin.reflect.KClass
 
-class EventManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
+class EventManager(override val flyLib: FlyLib) : FlyLibComponent {
     fun register(listener: FListener<*>) {
         flyLib.plugin.server.pluginManager.registerEvents(listener, flyLib.plugin)
     }

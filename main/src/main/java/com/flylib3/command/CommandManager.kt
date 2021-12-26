@@ -3,7 +3,7 @@ package com.flylib3.command
 import com.flylib3.FlyLib
 import com.flylib3.FlyLibComponent
 
-class CommandManager(flyLib: FlyLib) : FlyLibComponent(flyLib) {
+class CommandManager(override val flyLib: FlyLib) : FlyLibComponent {
     val commands = mutableListOf<FCommand>()
 
     fun register(command: FCommand) {

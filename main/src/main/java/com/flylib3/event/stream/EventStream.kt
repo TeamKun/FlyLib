@@ -38,7 +38,7 @@ interface EventStreamNode<From : Event, To : Event> {
 //    }
 }
 
-class EventStreamStarter<T : Event>(flyLib: FlyLib) : FlyLibComponent(flyLib), EventStreamNode<T, T> {
+class EventStreamStarter<T : Event>(override val flyLib: FlyLib) : FlyLibComponent, EventStreamNode<T, T> {
     val listener = SimpleFListener<T> {
         execute(it)
     }
