@@ -6,11 +6,7 @@ import com.flylib3.util.command
 import java.time.LocalDate
 
 class ExamplePlugin : FlyLibPlugin() {
-    override fun onWait() {
-        // Loading is Completed
-        // Maybe Command Registers will be here
-        super.onWait() // THIS IS NEEDED
-
+    override fun onEnable() {
         command("testCommand") {
             part<String>("String", "String2") {
                 part<Int>(1, 2, 3) {
@@ -39,17 +35,5 @@ class ExamplePlugin : FlyLibPlugin() {
     fun aCommand(event: FCommandEvent, str: String, str2: String): Boolean {
         event.commandSender.sendMessage("A!")
         return true
-    }
-
-    override fun onPrepare() {
-        // Prepare here for action
-        // Maybe Command Executors call this
-        super.onPrepare() // THIS IS NEEDED
-    }
-
-    override fun onAction() {
-        // Action Started
-        // Maybe Prepare Phase call this
-        super.onAction() // THIS IS NEEDED
     }
 }
