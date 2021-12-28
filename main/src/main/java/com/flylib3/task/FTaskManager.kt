@@ -5,7 +5,7 @@ import com.flylib3.FlyLibComponent
 import org.bukkit.scheduler.BukkitRunnable
 
 class FTaskManager(override val flyLib: FlyLib) : FlyLibComponent {
-    fun <T> everyTick(f: FlyLib.(Unit) -> T): FRunnableStarter<T> {
+    fun <T> everyTick(f: FRunnableContext.(Unit) -> T): FRunnableStarter<T> {
         val starter = runnableStarter(f)
         everyTick(starter)
         return starter
@@ -15,7 +15,7 @@ class FTaskManager(override val flyLib: FlyLib) : FlyLibComponent {
         timer(fRunnable)
     }
 
-    fun <T> nextTick(f: FlyLib.(Unit) -> T): FRunnableStarter<T> {
+    fun <T> nextTick(f: FRunnableContext.(Unit) -> T): FRunnableStarter<T> {
         val starter = runnableStarter(f)
         nextTick(starter)
         return starter
@@ -25,7 +25,7 @@ class FTaskManager(override val flyLib: FlyLib) : FlyLibComponent {
         run(fRunnable)
     }
 
-    fun <T> later(f: FlyLib.(Unit) -> T, delay: Long): FRunnableStarter<T> {
+    fun <T> later(f: FRunnableContext.(Unit) -> T, delay: Long): FRunnableStarter<T> {
         val starter = runnableStarter(f)
         later(starter, delay)
         return starter
@@ -35,7 +35,11 @@ class FTaskManager(override val flyLib: FlyLib) : FlyLibComponent {
         taskLater(fRunnable, delay)
     }
 
-    fun <T> runnableStarter(f: FlyLib.(Unit) -> T) = FRunnableStarter<T>(flyLib, f)
+    fun <T> task(f: FRunnableContext.(Unit) -> T): FRunnableStarter<T> {
+        return runnableStarter(f)
+    }
+
+    fun <T> runnableStarter(f: FRunnableContext.(Unit) -> T) = FRunnableStarter<T>(flyLib, f)
     private fun timer(runnable: BukkitRunnable, delay: Long = 0, period: Long = 1) {
         runnable.runTaskTimer(flyLib.plugin, delay, period)
     }
