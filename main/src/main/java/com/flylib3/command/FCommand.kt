@@ -216,17 +216,19 @@ class BuiltFPathCommand(
         args: Array<String>,
         str: String
     ): Boolean {
-        try {
+        return try {
             val t: T? = part.lazyParser(str)
             if (t == null) {
-                return false
+                false
             } else {
                 // Type is Same
-                return part.lazyValues(sender, command, label, args).contains(t)
+                part.lazyValues(sender, command, label, args).contains(t)
             }
         } catch (e: Exception) {
             // Something happened in Parsing String
-            return false
+            // TODO Log Error
+            println(e)
+            false
         }
     }
 
@@ -238,17 +240,19 @@ class BuiltFPathCommand(
         args: Array<String>,
         str: String
     ): Boolean {
-        try {
+        return try {
             val t: T? = part.lazyParser(str)
             if (t == null) {
-                return false
+                false
             } else {
                 // Type is Same
-                return part.lazyValues(sender, command, label, args).any { it.toString().startsWith(str) }
+                part.lazyValues(sender, command, label, args).any { it.toString().startsWith(str) }
             }
         } catch (e: Exception) {
             // Something happened in Parsing String
-            return false
+            // TODO Log Error
+            println(e)
+            false
         }
     }
 
@@ -316,6 +320,9 @@ class BuiltFPathCommand(
         if (args.isEmpty()) {
             // Only Command Name
             return parts[0].lazyValues(sender, command, alias, arrayOf()).map { it.toString() }.toMutableList()
+        } else if (args.size > parts.size) {
+            // Illegal Argument Size.
+            return null
         } else {
             // Excluded for Command Label and Last one
             val argsWithoutLast = args.slice(0 until args.lastIndex)
@@ -419,7 +426,7 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         val matched = getMatched(sender, command, label, args)
-        println("[Matched]:${matched}")
+//        println("[Matched]:${matched}")
         return when (matched) {
             is BuiltFPathCommand -> {
                 matched.onCommand(sender, command, label, args)
