@@ -118,3 +118,24 @@ nextTick {
 ```
 
 Wait function connect two elements with delay.<br/>
+
+## Filter
+
+```kotlin
+fun <I> FRunnable<*, I>.filter(f: (I, FRunnableContext) -> Boolean)
+```
+
+```kotlin
+task {
+    // Some Task
+    return@task "SomeString"
+}.filter { str, context ->
+    return@filter str.isEmpty()
+}.then {
+    // This body never be called!
+}
+```
+
+Filter function filter the flow of task.<br/>
+if its body returns true,the flow continues to flow.<br/>
+if its body returns false,the flow will not flow after this filter element.<br/>

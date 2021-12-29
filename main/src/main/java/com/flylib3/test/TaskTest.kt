@@ -19,6 +19,14 @@ class TaskTest : FlyLibPlugin() {
         }.then {
             println("BBB")
         }.run()
+
+        task {
+            println("CCC")
+        }.filter { _, _ ->
+            return@filter false
+        }.then {
+            println("This will not be called.")
+        }.run()
     }
 
     override fun disable() {
