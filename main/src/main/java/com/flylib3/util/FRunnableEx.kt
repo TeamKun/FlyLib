@@ -16,6 +16,7 @@ class WaitFR<I>(val ticks: Long, flyLib: FlyLib, starter: FRunnableStarter<*>?) 
     override fun onRun(input: I, beforeContext: FRunnableContext): Pair<FRunnableContext, I> {
         val context = createContext()
         context.breakThen()
+        flyLib.task.later({ processThen(input,context) }, ticks)
         return Pair(context, input)
     }
 }
