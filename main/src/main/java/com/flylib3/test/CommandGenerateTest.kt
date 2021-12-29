@@ -12,7 +12,7 @@ import kotlin.reflect.full.createType
  *  PASSED AT 17:26 2021/12/22
  */
 class CommandGenerateTestPlugin() : FlyLibPlugin() {
-    override fun onEnable() {
+    override fun enable() {
         command("testCommand") {
             part<String>("String", "String2") {
                 part<Int>(1, 2, 3) {
@@ -34,6 +34,9 @@ class CommandGenerateTestPlugin() : FlyLibPlugin() {
                 }
             }
         }
+    }
+
+    override fun disable() {
     }
 
     fun executeCommand(event: FCommandEvent, str: String, int: Int): Boolean {

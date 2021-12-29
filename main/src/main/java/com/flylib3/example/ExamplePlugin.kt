@@ -6,7 +6,7 @@ import com.flylib3.util.command
 import java.time.LocalDate
 
 class ExamplePlugin : FlyLibPlugin() {
-    override fun onEnable() {
+    override fun enable() {
         command("testCommand") {
             part<String>("String", "String2") {
                 part<Int>(1, 2, 3) {
@@ -24,6 +24,9 @@ class ExamplePlugin : FlyLibPlugin() {
                 }
             }
         }
+    }
+
+    override fun disable() {
     }
 
     fun executeCommand(event: FCommandEvent, str: String, int: Int): Boolean {

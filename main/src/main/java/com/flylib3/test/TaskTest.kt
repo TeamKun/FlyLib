@@ -5,7 +5,7 @@ import com.flylib3.event.ex.FCommandEvent
 import com.flylib3.util.*
 
 class TaskTest : FlyLibPlugin() {
-    override fun onEnable() {
+    override fun enable() {
         command("testCommand") {
             part("run") {
                 terminal {
@@ -19,6 +19,9 @@ class TaskTest : FlyLibPlugin() {
         }.then {
             println("BBB")
         }.run()
+    }
+
+    override fun disable() {
     }
 
     fun call(e: FCommandEvent, str: String): Boolean {

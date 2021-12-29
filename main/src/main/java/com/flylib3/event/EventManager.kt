@@ -12,8 +12,11 @@ class EventManager(override val flyLib: FlyLib) : FlyLibComponent {
         flyLib.plugin.server.pluginManager.registerEvents(listener, flyLib.plugin)
     }
 
-    fun registerExternalEvent(event: ExternalEvent) {
-        // TODO
+    /**
+     * Call External Event in this plugin.
+     */
+    fun callEvent(event: ExternalEvent) {
+        flyLib.plugin.server.pluginManager.callEvent(event)
     }
 
     fun <T : Event> stream(clazz: KClass<T>): EventStreamStarter<T> {
