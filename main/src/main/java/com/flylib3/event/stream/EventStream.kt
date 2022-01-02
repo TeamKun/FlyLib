@@ -5,6 +5,7 @@ import com.flylib3.FlyLibComponent
 import com.flylib3.event.SimpleFListener
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
+import kotlin.reflect.KClass
 
 interface EventStreamNode<From : Event, To : Event> {
     var next: EventStreamNode<To, *>?
@@ -38,8 +39,8 @@ interface EventStreamNode<From : Event, To : Event> {
 //    }
 }
 
-class EventStreamStarter<T : Event>(override val flyLib: FlyLib) : FlyLibComponent, EventStreamNode<T, T> {
-    val listener = SimpleFListener<T> {
+class EventStreamStarter<T : Event>(override val flyLib: FlyLib,val eventClass:KClass<T>) : FlyLibComponent, EventStreamNode<T, T> {
+    val listener = SimpleFListener<T>(eventClass) {
         execute(it)
     }
 

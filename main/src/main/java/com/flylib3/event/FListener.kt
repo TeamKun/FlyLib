@@ -3,12 +3,18 @@ package com.flylib3.event
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.plugin.EventExecutor
+import kotlin.reflect.KClass
 
-interface FListener<T : Event> : Listener {
-    @EventHandler
-    fun onEvent(t: T)
-}
 
-class SimpleFListener<T : Event>(val f: (T) -> Unit) : FListener<T> {
-    override fun onEvent(t: T) = f(t)
+class SimpleFListener<T : Event>(val eventClass: KClass<T>, val f: (T) -> Unit) : EventExecutor, Listener {
+    fun event(t: T) {
+        f(t)
+    }
+
+    override fun execute(listener: Listener, event: Event) {
+        if (eventClass.isInstance(event)) {
+            event(eventClass.java.cast(event))
+        }
+    }
 }
