@@ -27,10 +27,14 @@ class ChestGUITest : FlyLibPlugin() {
         return if (event.commandSender is Player) {
             val gui = ChestGUI(flylib, Component.text("Test ChestGUI"), 4)
             gui.open(event.commandSender)
-            gui[1, 1].itemStack = ItemStack(Material.DIAMOND).also { it.amount = 64 }
-            gui[1, 1].click = {
-                it.whoClicked.sendMessage("Clicked!")
+
+            gui[1,1].apply {
+                itemStack = ItemStack(Material.DIAMOND).also { it.amount = 64 }
+                click = {
+                    it.whoClicked.sendMessage("Clicked!")
+                }
             }
+
             true
         } else {
             event.commandSender.sendMessage("This command can only be executed by player")
