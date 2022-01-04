@@ -3,6 +3,7 @@ package com.flylib3.gui.inventory
 import com.flylib3.FlyLib
 import com.flylib3.gui.FGUIComponent
 import com.flylib3.gui.Pos
+import com.flylib3.util.ready
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -29,13 +30,9 @@ abstract class InventoryGUI(inventoryType: InventoryType, name: Component, val f
      * Registers the inventory GUI's events.
      */
     fun registerEvent() {
-//        fl.event.stream(InventoryClickEvent::class).filter {
-//            it.inventory == this.inventory
-//        }.forEach {
-//            onClick(it.rawSlot, it)
-//        }
-        
-        fl.event.stream(InventoryClickEvent::class).forEach {
+        fl.event.stream(InventoryClickEvent::class).filter {
+            it.inventory == this.inventory
+        }.forEach {
             onClick(it.rawSlot, it)
         }
     }
