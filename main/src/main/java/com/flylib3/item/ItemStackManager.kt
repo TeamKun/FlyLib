@@ -140,10 +140,7 @@ class ItemStackManager(override val flyLib: FlyLib) : FlyLibComponent {
     }
 
     inline fun <reified T : Any> listPersistentDataType(): PersistentDataType<String, List<T>>? {
-        info { "${it}listPersistentDataType: ${T::class.java}" }
         val tDataType = persistentDataType(String::class.java, T::class.java) ?: return null
-        info { "${it}tDataType: $tDataType" }
-        info { "${it}tDataType.primitiveType: ${tDataType.primitiveType}" }
         return if (tDataType.primitiveType == String::class.java) {
             ListPersistentDataType<T>(T::class.java, tDataType as PersistentDataType<String, T>) // Checked cast
         } else {
