@@ -5,24 +5,27 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 
+@FunctionalInterface
 abstract class Matcher<T> {
-    /**
-     * @return if the arg is correct
-     */
-    abstract fun isMatch(arg: String): Boolean
-
     abstract fun parse(arg: String): T?
+
+    companion object {
+        fun <T> of(lambda: (String) -> T?): Matcher<T> {
+            return object : Matcher<T>() {
+                override fun parse(arg: String): T? {
+                    return lambda(arg)
+                }
+            }
+        }
+    }
 }
 
-//class combinationMatcher<T>(val matcher: List<Matcher<T>>) : Matcher<T>() {
-//    override fun isMatch(arg: String): Boolean {
-//        return matcher.all { it.isMatch(arg) }
-//    }
-//
-//    override fun parse(arg: String): T? {
-//
-//    }
-//}
+// This class must implement toString()
+// and the matcher must be able to parse the string
+interface Matchable<T> {
+    val matcher: Matcher<T>
+}
+
 
 abstract class TypeMatcher<T : Any> : Matcher<T>() {
     companion object {
@@ -67,7 +70,6 @@ abstract class TypeMatcher<T : Any> : Matcher<T>() {
 }
 
 class IntTypeMatcher : TypeMatcher<Int>() {
-    override fun isMatch(arg: String): Boolean = arg.toIntOrNull() != null
     override fun parse(arg: String): Int? {
         return arg.toIntOrNull()
     }
@@ -76,7 +78,6 @@ class IntTypeMatcher : TypeMatcher<Int>() {
 }
 
 class FloatTypeMatcher : TypeMatcher<Float>() {
-    override fun isMatch(arg: String): Boolean = arg.toFloatOrNull() != null
     override fun parse(arg: String): Float? {
         return arg.toFloatOrNull()
     }
@@ -85,7 +86,6 @@ class FloatTypeMatcher : TypeMatcher<Float>() {
 }
 
 class DoubleTypeMatcher : TypeMatcher<Double>() {
-    override fun isMatch(arg: String): Boolean = arg.toDoubleOrNull() != null
     override fun parse(arg: String): Double? {
         return arg.toDoubleOrNull()
     }
@@ -94,7 +94,6 @@ class DoubleTypeMatcher : TypeMatcher<Double>() {
 }
 
 class LongTypeMatcher : TypeMatcher<Long>() {
-    override fun isMatch(arg: String): Boolean = arg.toLongOrNull() != null
     override fun parse(arg: String): Long? {
         return arg.toLongOrNull()
     }
@@ -103,10 +102,6 @@ class LongTypeMatcher : TypeMatcher<Long>() {
 }
 
 class StringTypeMatcher : TypeMatcher<String>() {
-    override fun isMatch(arg: String): Boolean {
-        return true
-    }
-
     override fun parse(arg: String): String {
         return arg
     }
@@ -115,10 +110,6 @@ class StringTypeMatcher : TypeMatcher<String>() {
 }
 
 class LazyTypeMatcher<T : Any>(val lazyParser: (String) -> T?, val kClass: KClass<T>) : TypeMatcher<T>() {
-    override fun isMatch(arg: String): Boolean {
-        return parse(arg) != null
-    }
-
     override fun parse(arg: String): T? {
         return lazyParser(arg)
     }

@@ -2,6 +2,7 @@ package com.flylib3.test
 
 import com.flylib3.FlyLibPlugin
 import com.flylib3.event.ex.ExternalEvent
+import com.flylib3.util.info
 import com.flylib3.util.task
 import com.flylib3.util.wait
 import org.bukkit.event.EventHandler
@@ -20,7 +21,7 @@ class EventTest : FlyLibPlugin() {
 
     @EventHandler
     fun testEvent(event: TestEvent) {
-        flylib.log.info { "${it}Test Event Function Called" }
+        info { "${it}Test Event Function Called" }
     }
 }
 
