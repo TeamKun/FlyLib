@@ -8,12 +8,22 @@ import com.flylib3.task.FTaskManager
 import org.bukkit.plugin.java.JavaPlugin
 
 class FlyLib internal constructor(val plugin: JavaPlugin) {
+    // ready Listener
+    private val ready = mutableListOf<() -> Unit>()
+    fun onReady(lambda: () -> Unit) {
+        ready.add(lambda)
+    }
+
     val resource = ResourceManager(this)
     val log = FlyLibLogger(this)
     val command = CommandManager(this)
     val event = EventManager(this)
     val task = FTaskManager(this)
     val item = ItemStackManager(this)
+
+    init {
+        ready.forEach { it() }
+    }
 }
 
 fun flylib(plugin: JavaPlugin): FlyLib {

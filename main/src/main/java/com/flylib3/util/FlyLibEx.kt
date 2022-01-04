@@ -14,10 +14,10 @@ fun FlyLibPlugin.command(commandName: String, alias: List<String> = listOf(), la
     FCommandBuilder.command(flyLib, commandName, alias, lambda)
 }
 
-fun <T> FlyLibPlugin.everyTick(l: FRunnableContext.(Unit) -> T) = flyLib.task.everyTick(l)
-fun <T> FlyLibPlugin.nextTick(l: FRunnableContext.(Unit) -> T) = flyLib.task.nextTick(l)
-fun <T> FlyLibPlugin.later(l: FRunnableContext.(Unit) -> T, delay: Long) = flyLib.task.later(l, delay)
-fun <T> FlyLibPlugin.task(l: FRunnableContext.(Unit) -> T) = flyLib.task.task(l)
+fun <T> FlyLibComponent.everyTick(l: FRunnableContext.(Unit) -> T) = flyLib.task.everyTick(l)
+fun <T> FlyLibComponent.nextTick(l: FRunnableContext.(Unit) -> T) = flyLib.task.nextTick(l)
+fun <T> FlyLibComponent.later(l: FRunnableContext.(Unit) -> T, delay: Long) = flyLib.task.later(l, delay)
+fun <T> FlyLibComponent.task(l: FRunnableContext.(Unit) -> T) = flyLib.task.task(l)
 
 fun FlyLibComponent.fine(str: String) = this.flyLib.log.fine(str)
 fun FlyLibComponent.fine(lazy: (String) -> String) = this.flyLib.log.fine(lazy)
@@ -30,3 +30,5 @@ fun FlyLibComponent.warn(lazy: (String) -> String) = this.flyLib.log.warn(lazy)
 
 fun FlyLibComponent.error(str: String) = this.flyLib.log.error(str)
 fun FlyLibComponent.error(lazy: (String) -> String) = this.flyLib.log.error(lazy)
+
+fun FlyLibComponent.ready(lambda: () -> Unit) = flyLib.onReady(lambda)

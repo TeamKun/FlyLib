@@ -1,8 +1,17 @@
 package com.flylib3
 
+import com.flylib3.util.nextTick
+import com.flylib3.util.ready
 import java.lang.Exception
 
 class FlyLibLogger(override val flyLib: FlyLib) : FlyLibComponent {
+    init {
+        ready {
+            info("FlyLibLogger ready")
+        }
+    }
+
+
     fun fine(s: String) {
         flyLib.plugin.logger.fine(s)
     }
