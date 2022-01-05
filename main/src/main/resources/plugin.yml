@@ -1,7 +1,7 @@
 # Dummy Plugin Yaml File
 name: FlyLibTest
 version: '${project.version}'
-main: com.flylib3.test.CommandGenerateTestPlugin
+main: com.flylib3.test.ChestGUITest
 api-version: 1.16
 authors: [ Bun133 ]
 commands:

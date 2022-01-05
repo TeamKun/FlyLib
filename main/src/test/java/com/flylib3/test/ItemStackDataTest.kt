@@ -68,14 +68,14 @@ class ItemStackDataTest : FlyLibPlugin() {
     fun giveItem(e: FCommandEvent, str: String): Boolean {
         val stack = itemData.build()
         if (e.commandSender is Player) {
-            e.commandSender.inventory.addItem(stack)
+            (e.commandSender as Player).inventory.addItem(stack)
         }
         return true
     }
 
     fun writeItemDate(e: FCommandEvent, str: String, str1: String): Boolean {
         if (e.commandSender is Player) {
-            val stack = e.commandSender.inventory.itemInMainHand
+            val stack = (e.commandSender as Player).inventory.itemInMainHand
             val result = stack.setData(LocalDate.now())
             e.commandSender.sendMessage("setData: $result")
             return true
@@ -87,7 +87,7 @@ class ItemStackDataTest : FlyLibPlugin() {
 
     fun readItemDate(e: FCommandEvent, str: String, str1: String): Boolean {
         if (e.commandSender is Player) {
-            val stack = e.commandSender.inventory.itemInMainHand
+            val stack = (e.commandSender as Player).inventory.itemInMainHand
             if (stack.type == Material.DIAMOND) {
                 val data = stack.getData<LocalDate>()
                 e.commandSender.sendMessage("Data: $data")
@@ -101,7 +101,7 @@ class ItemStackDataTest : FlyLibPlugin() {
 
     fun writeItemList(e: FCommandEvent, str: String, str1: String): Boolean {
         if (e.commandSender is Player) {
-            val stack = e.commandSender.inventory.itemInMainHand
+            val stack = (e.commandSender as Player).inventory.itemInMainHand
             val result = stack.setList(listOf(1, 2, 3))
             e.commandSender.sendMessage("setData: $result")
             return true
@@ -113,7 +113,7 @@ class ItemStackDataTest : FlyLibPlugin() {
 
     fun readItemList(e: FCommandEvent, str: String, str1: String): Boolean {
         if (e.commandSender is Player) {
-            val stack = e.commandSender.inventory.itemInMainHand
+            val stack = (e.commandSender as Player).inventory.itemInMainHand
             if (stack.type == Material.DIAMOND) {
                 val data = stack.getList<Int>()
                 e.commandSender.sendMessage("Data: $data")

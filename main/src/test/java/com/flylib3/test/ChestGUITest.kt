@@ -26,7 +26,7 @@ class ChestGUITest : FlyLibPlugin() {
     fun open(event: FCommandEvent, str: String): Boolean {
         return if (event.commandSender is Player) {
             val gui = ChestGUI(flyLib, Component.text("Test ChestGUI"), 4)
-            gui.open(event.commandSender)
+            gui.open(event.commandSender as Player)
 
             gui[1,1].apply {
                 itemStack = ItemStack(Material.DIAMOND).also { it.amount = 64 }
