@@ -3,6 +3,8 @@ package com.flylib3.test
 import com.flylib3.FlyLibPlugin
 import com.flylib3.event.ex.FCommandEvent
 import com.flylib3.util.*
+import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryOpenEvent
 
 class TaskTest : FlyLibPlugin() {
     override fun enable() {
@@ -27,6 +29,12 @@ class TaskTest : FlyLibPlugin() {
         }.then {
             println("This will not be called.")
         }.run()
+
+        event<InventoryOpenEvent, Player> {
+            return@event it.player as Player
+        }.then {
+            it.sendMessage("You opened an inventory.")
+        }
     }
 
     override fun disable() {
