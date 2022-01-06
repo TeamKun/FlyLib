@@ -1,6 +1,7 @@
 package com.flylib3.task
 
 import com.flylib3.FlyLib
+import com.flylib3.FlyLibComponent
 import org.bukkit.scheduler.BukkitRunnable
 import java.lang.IllegalArgumentException
 
@@ -9,10 +10,10 @@ import java.lang.IllegalArgumentException
  * @param st is starter of this runnable,for starter its own, it will be null.
  */
 open class FRunnable<I, O>(
-    val flyLib: FlyLib,
+    override val flyLib: FlyLib,
     var lambda: (FRunnableContext.(I) -> O)?,
-    val st: FRunnableStarter<*>?
-) : BukkitRunnable() {
+    val st: FRunnableStarter<*, *>?
+) : BukkitRunnable(), FlyLibComponent {
     /**
      * Function that executes the lambda body and return value of it.
      * also, This function must call "then" elements.
@@ -96,22 +97,31 @@ open class FRunnable<I, O>(
         return this.then(FRunnable<O, S>(flyLib, f, getStarter()))
     }
 
-    fun getStarter(): FRunnableStarter<*> {
+    fun getStarter(): FRunnableStarter<*, *> {
         return st
-            ?: if (this is FRunnableStarter<*>)
+            ?: if (this is FRunnableStarter<*, *>)
                 this
             else throw IllegalStateException("In FRunnable($this)#getStarter,this is not starter and st is null.(If you see this,this is the bug of FlyLib3.)")
     }
 }
 
-class FRunnableStarter<O>(flyLib: FlyLib, l: FRunnableContext.(Unit) -> O) : FRunnable<Unit, O>(flyLib, l, null) {
+// The Starter of the chain
+open class FRunnableStarter<I, O>(flyLib: FlyLib, l: FRunnableContext.(I) -> O) : FRunnable<I, O>(flyLib, l, null) {
     override fun run() {
-        // Only Starter is allowed to pass null value to beforeContext
+        // To Override,when this starter called,then #run(I,null)
+    }
+}
+
+class FRunnableUnitStarter<O>(flyLib: FlyLib, l: FRunnableContext.(Unit) -> O) : FRunnableStarter<Unit, O>(
+    flyLib,
+    l
+) {
+    override fun run() {
         this.run(Unit, null)
     }
 }
 
-abstract class FRunnableNode<I, O>(flyLib: FlyLib, starter: FRunnableStarter<*>?) :
+abstract class FRunnableNode<I, O>(flyLib: FlyLib, starter: FRunnableStarter<*, *>?) :
     FRunnable<I, O>(flyLib, null, starter) {
     override fun run(input: I, beforeContext: FRunnableContext?): O {
         if (beforeContext == null) {
