@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.flylib</groupId>
-    <artifactId>FlyLib3</artifactId>
+    <artifactId>flylib3</artifactId>
     <name>FlyLib3</name>
     <description>Helper Library on Paper 1.16.5</description>
 
