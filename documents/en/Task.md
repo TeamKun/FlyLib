@@ -21,6 +21,7 @@ There are four TaskStarters.<br/>
 2) nextTick
 3) later
 4) task
+5) event
 
 ## EveryTick
 
@@ -75,6 +76,24 @@ task {
 }.run()
 ```
 
+## Event
+
+```kotlin
+inline fun <reified T : Event, R> FlyLibComponent.event(noinline l: FRunnableContext.(T) -> R) =
+    flyLib.task.event<T, R>(l)
+```
+
+Event element will listen to event.<br/>
+This element works like event listener.<br/>
+
+```kotlin
+event<InventoryOpenEvent, Player> {
+    return@event it.player as Player
+}.then {
+    it.sendMessage("Open Inventory")
+}
+```
+
 # TaskNode
 
 TaskNode process value/data from before node/starter and pass processed value to next node.<br/>
@@ -83,6 +102,7 @@ There are two types of TaskNode.<br/>
 
 1) then
 2) wait
+3) filter
 
 ## Then
 
