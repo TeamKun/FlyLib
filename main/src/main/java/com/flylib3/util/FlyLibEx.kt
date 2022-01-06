@@ -18,7 +18,7 @@ fun FlyLibPlugin.command(commandName: String, alias: List<String> = listOf(), la
 
 fun <T> FlyLibComponent.everyTick(l: FRunnableContext.(Unit) -> T) = flyLib.task.everyTick(l)
 fun <T> FlyLibComponent.nextTick(l: FRunnableContext.(Unit) -> T) = flyLib.task.nextTick(l)
-fun <T> FlyLibComponent.later(l: FRunnableContext.(Unit) -> T, delay: Long) = flyLib.task.later(l, delay)
+fun <T> FlyLibComponent.later(delay: Long,l: FRunnableContext.(Unit) -> T) = flyLib.task.later(l, delay)
 fun <T> FlyLibComponent.task(l: FRunnableContext.(Unit) -> T) = flyLib.task.task(l)
 fun <T : Event, R> FlyLibComponent.event(event: KClass<T>, l: FRunnableContext.(T) -> R) = flyLib.task.event(event, l)
 inline fun <reified T : Event, R> FlyLibComponent.event(noinline l: FRunnableContext.(T) -> R) =

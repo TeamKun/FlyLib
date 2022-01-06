@@ -2,10 +2,18 @@ package com.flylib3.example
 
 import com.flylib3.FlyLibPlugin
 import com.flylib3.event.ex.FCommandEvent
-import com.flylib3.util.command
+import com.flylib3.util.*
+import org.bukkit.event.player.PlayerMoveEvent
 import java.time.LocalDate
 
 class ExamplePlugin : FlyLibPlugin() {
+    init {
+        ready {
+            // Most time,flylib is already loaded at this point.
+            info("FlyLib is ready")
+        }
+    }
+
     override fun enable() {
         command("testCommand") {
             part<String>("String", "String2") {
@@ -13,16 +21,25 @@ class ExamplePlugin : FlyLibPlugin() {
                     terminal {
                         usage("This is Usage")
                         permission { commandSender, _, _, _ -> commandSender.isOp }
-                        execute(ExamplePlugin::executeCommand)
+                        execute(this@ExamplePlugin::executeCommand)
                     }
                 }
 
                 part<String>("A") {
                     terminal {
-                        execute(ExamplePlugin::aCommand)
+                        execute(this@ExamplePlugin::aCommand)
                     }
                 }
             }
+        }
+
+
+        task {
+            info("Start Up!")
+        }.run()
+
+        event<PlayerMoveEvent, Unit> {
+            it.player.sendMessage("Player Move!")
         }
     }
 
@@ -30,8 +47,11 @@ class ExamplePlugin : FlyLibPlugin() {
     }
 
     fun executeCommand(event: FCommandEvent, str: String, int: Int): Boolean {
-        println("Execute Part")
+        info("Execute Part")
         event.commandSender.sendMessage("str:$str,int:$int")
+        later(20 * 5) {
+            event.commandSender.sendMessage("After 5 seconds")
+        }
         return true
     }
 

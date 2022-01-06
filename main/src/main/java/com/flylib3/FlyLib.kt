@@ -10,8 +10,12 @@ import org.bukkit.plugin.java.JavaPlugin
 class FlyLib internal constructor(val plugin: JavaPlugin) {
     // ready Listener
     private val ready = mutableListOf<() -> Unit>()
+    var isReady = false
+        private set
+
     fun onReady(lambda: () -> Unit) {
-        ready.add(lambda)
+        if (isReady) lambda()
+        else ready.add(lambda)
     }
 
     val resource = ResourceManager(this)
@@ -23,6 +27,7 @@ class FlyLib internal constructor(val plugin: JavaPlugin) {
 
     init {
         ready.forEach { it() }
+        isReady = true
     }
 }
 
