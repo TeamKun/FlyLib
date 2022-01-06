@@ -5,14 +5,14 @@
     <version>3.0.1</version>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.flylib3</groupId>
-    <artifactId>main</artifactId>
+    <groupId>com.flylib</groupId>
+    <artifactId>FlyLib3</artifactId>
+    <name>FlyLib3</name>
+    <description>Helper Library on Paper 1.16.5</description>
 
     <packaging>jar</packaging>
 
-    <name>Main</name>
 
-    <description>FlyLib3 on Paper 1.16.5</description>
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,9 +22,9 @@
 
     <distributionManagement>
         <repository>
-            <id>github</id>
+            <id>FlyLib-Github</id>
             <name>GitHub</name>
-            <url>https;//maven.pkg.github.com/TeamKun/FlyLib</url>
+            <url>https://maven.pkg.github.com/TeamKun/FlyLib</url>
         </repository>
     </distributionManagement>
 
