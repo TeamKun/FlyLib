@@ -5,6 +5,7 @@ import com.flylib3.FlyLibComponent
 import com.flylib3.command.argument.TypeMatcher
 import com.flylib3.event.ex.FCommandEvent
 import com.flylib3.util.allIndexed
+import com.flylib3.util.error
 import org.bukkit.ChatColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -15,7 +16,7 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 
-abstract class FCommand : CommandExecutor, TabCompleter, UsageProvider {
+abstract class FCommand : CommandExecutor, TabCompleter, UsageProvider, FlyLibComponent {
     abstract val name: String
     abstract val alias: List<String>
     abstract fun permission(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean
@@ -64,7 +65,7 @@ class FCommandBuilder(
 
     private fun exportIntoOne(): BuiltFCommand {
         val commands = partCommands.toMutableList()
-        return BuiltFCommand(*commands.toTypedArray())
+        return BuiltFCommand(flyLib, *commands.toTypedArray())
     }
 
     private fun registerAll() {
@@ -193,7 +194,7 @@ class FCommandBuilderPath(
 
     internal fun register(commandName: String, vararg alias: String) {
         val all = this.getAll()
-        val command = BuiltFPathCommand(all, this, commandName, *alias)
+        val command = BuiltFPathCommand(all, this, commandName, flyLib, *alias)
         builder.partCommands.add(command)
     }
 }
@@ -205,6 +206,7 @@ class BuiltFPathCommand(
     val parts: List<FCommandBuilderPart<*>>,
     val fCommandBuilderPath: FCommandBuilderPath,
     commandName: String,
+    override val flyLib: FlyLib,
     vararg alias: String
 ) :
     FCommand() {
@@ -226,8 +228,7 @@ class BuiltFPathCommand(
             }
         } catch (e: Exception) {
             // Something happened in Parsing String
-            // TODO Log Error
-            println(e)
+            error(e)
             false
         }
     }
@@ -250,8 +251,7 @@ class BuiltFPathCommand(
             }
         } catch (e: Exception) {
             // Something happened in Parsing String
-            // TODO Log Error
-            println(e)
+            error(e)
             false
         }
     }
@@ -380,7 +380,7 @@ class BuiltFPathCommand(
     }
 }
 
-class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
+class BuiltFCommand(override val flyLib: FlyLib, vararg val command: BuiltFPathCommand) : FCommand() {
     init {
         require(command.none { command[0].name != it.name })
         require(command.none { command[0].alias != it.alias })
@@ -469,7 +469,7 @@ class BuiltFCommand(vararg val command: BuiltFPathCommand) : FCommand() {
             return matched[0]
         } else {
 //            println("${matched.size} Matched")
-            return BuiltFCommand(*matched.toTypedArray())
+            return BuiltFCommand(this.flyLib, *matched.toTypedArray())
         }
     }
 
