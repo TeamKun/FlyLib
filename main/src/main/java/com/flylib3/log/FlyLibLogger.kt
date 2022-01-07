@@ -1,6 +1,7 @@
-package com.flylib3
+package com.flylib3.log
 
-import com.flylib3.util.nextTick
+import com.flylib3.FlyLib
+import com.flylib3.FlyLibComponent
 import com.flylib3.util.ready
 import java.lang.Exception
 

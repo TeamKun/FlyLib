@@ -3,6 +3,7 @@ package com.flylib3
 import com.flylib3.command.CommandManager
 import com.flylib3.event.EventManager
 import com.flylib3.item.ItemStackManager
+import com.flylib3.log.FlyLibLogger
 import com.flylib3.resource.ResourceManager
 import com.flylib3.task.FTaskManager
 import org.bukkit.plugin.java.JavaPlugin
