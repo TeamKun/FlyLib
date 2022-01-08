@@ -3,19 +3,23 @@ package com.flylib3.test
 import com.flylib3.FlyLibPlugin
 import com.flylib3.event.ex.FCommandEvent
 import com.flylib3.item.ItemData
-import com.flylib3.item.ObjectPersistentDataType
+import com.flylib3.ObjectPersistentDataType
 import com.flylib3.util.command
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataAdapterContext
-import org.bukkit.persistence.PersistentDataType
 import java.time.LocalDate
+
+/**
+ * PersistentDataManager Rewrite Data force,
+ * so write date,write list then,read date makes exception.
+ */
 
 class ItemStackDataTest : FlyLibPlugin() {
     override fun enable() {
         // Register Test PersistentDataType
-        flyLib.item.registerPersistentDataType(LocalDatePersistentDataType())
+        flyLib.persistentDataManager.registerPersistentDataType(LocalDatePersistentDataType())
 
         command("testCommand") {
             part("give") {

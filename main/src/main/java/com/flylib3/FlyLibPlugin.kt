@@ -45,21 +45,21 @@ abstract class FlyLibPlugin : JavaPlugin(), Listener, FlyLibComponent {
      * @return the data container of the item.
      */
     inline fun <reified V : Any> ItemStack.getData(): V? {
-        return flyLib.item.get<V>(this)
+        return this.dataContainer { flyLib.persistentDataManager.get<V>(it) }
     }
 
     /**
      * set the data into the item.
      */
     inline fun <reified V : Any> ItemStack.setData(value: V): Boolean {
-        return flyLib.item.set(this, value)
+        return this.dataContainer { flyLib.persistentDataManager.set(it, value) } == true
     }
 
     inline fun <reified T : Any> ItemStack.getList(): List<T>? {
-        return flyLib.item.getList<T>(this)
+        return this.dataContainer { flyLib.persistentDataManager.getList<T>(it) }
     }
 
     inline fun <reified T : Any> ItemStack.setList(value: List<T>): Boolean {
-        return flyLib.item.setList(this, value)
+        return this.dataContainer { flyLib.persistentDataManager.setList(it, value) } == true
     }
 }

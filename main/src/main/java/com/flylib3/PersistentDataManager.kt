@@ -1,19 +1,16 @@
-package com.flylib3.item
+package com.flylib3
 
-import com.flylib3.FlyLib
-import com.flylib3.FlyLibComponent
 import com.flylib3.command.argument.Matchable
 import com.flylib3.command.argument.Matcher
 import com.flylib3.util.dataContainer
-import com.flylib3.util.info
 import org.bukkit.NamespacedKey
-import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataAdapterContext
+import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-class ItemStackManager(override val flyLib: FlyLib) : FlyLibComponent {
+open class PersistentDataManager(override val flyLib: FlyLib) : FlyLibComponent {
     companion object {
         val allPersistentDataType = mutableListOf<PersistentDataType<*, *>>(
             // Paper Start
@@ -49,57 +46,49 @@ class ItemStackManager(override val flyLib: FlyLib) : FlyLibComponent {
         allPersistentDataType.add(type)
     }
 
-    inline fun <reified V : Any> get(stack: ItemStack): V? {
+    inline fun <reified V : Any> get(container: PersistentDataContainer): V? {
         val dataType = persistentDataType(V::class.java)
         if (dataType == null) {
             return null
         } else {
-            return stack.dataContainer {
-                return@dataContainer it[namespace, dataType]
-            }
+            return container[namespace, dataType]
         }
     }
 
-    inline fun <reified V : Any> set(stack: ItemStack, value: V): Boolean {
+    inline fun <reified V : Any> set(container: PersistentDataContainer, value: V): Boolean {
         val dataType = persistentDataType(V::class.java) ?: return false
-        stack.dataContainer {
-            it[namespace, dataType] = value
-        }
+        container[namespace, dataType] = value
         return true
     }
 
-    inline fun <reified T : Matchable<T>> getMatchable(stack: ItemStack, matcher: Matcher<T>): T? {
+    inline fun <reified T : Matchable<T>> getMatchable(container: PersistentDataContainer, matcher: Matcher<T>): T? {
         val dataType = MatchablePersistentDataType(T::class.java, matcher)
-        return stack.dataContainer {
-            return@dataContainer it[namespace, dataType]
-        }
+        return container[namespace, dataType]
     }
 
-    inline fun <reified T : Matchable<T>> setMatchable(stack: ItemStack, matcher: Matcher<T>, value: T): Boolean {
+    inline fun <reified T : Matchable<T>> setMatchable(
+        container: PersistentDataContainer,
+        matcher: Matcher<T>,
+        value: T
+    ): Boolean {
         val dataType = MatchablePersistentDataType(T::class.java, matcher)
-        stack.dataContainer {
-            it[namespace, dataType] = value
-        }
+        container[namespace, dataType] = value
         return true
     }
 
-    inline fun <reified V : Any> getList(stack: ItemStack): List<V>? {
+    inline fun <reified V : Any> getList(container: PersistentDataContainer): List<V>? {
         val dataType = listPersistentDataType<V>()
         if (dataType == null) {
             return null
         } else {
-            return stack.dataContainer {
-                return@dataContainer it[namespace, dataType]
-            }
+            return container[namespace, dataType]
         }
     }
 
-    inline fun <reified V : Any> setList(stack: ItemStack, list: List<V>): Boolean {
+    inline fun <reified V : Any> setList(container: PersistentDataContainer, list: List<V>): Boolean {
         val dataType = listPersistentDataType<V>() ?: return false
-        val result = stack.dataContainer {
-            it[namespace, dataType] = list
-        }
-        return result != null
+        container[namespace, dataType] = list
+        return true
     }
 
     /**
