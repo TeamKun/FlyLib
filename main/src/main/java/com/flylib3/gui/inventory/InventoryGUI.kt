@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
@@ -78,21 +79,26 @@ abstract class InventoryGUI(inventoryType: InventoryType, name: Component, val f
     }
 
     private val seer = mutableListOf<Player>()
+    private val closer = mutableListOf<Player>()
 
     override fun open(p: Player, forceKeepOpen: Boolean) {
         p.openInventory(inventory)
         seer.add(p)
         if (forceKeepOpen) {
-            flyLib.event.stream(InventoryOpenEvent::class).filter {
-                it.inventory == inventory
+            flyLib.event.stream(InventoryCloseEvent::class).filter {
+                it.inventory == inventory && it.player == p
             }.forEach {
-                // Cancel the event
-                it.isCancelled = true
+                if (closer.contains(p)) {
+                    closer.remove(p)
+                } else {
+                    open(p, true)
+                }
             }
         }
     }
 
     override fun close(p: Player) {
+        closer.add(p)
         p.closeInventory()
         seer.remove(p)
     }
