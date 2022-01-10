@@ -26,8 +26,8 @@ class FlyLib internal constructor(val plugin: JavaPlugin) {
     val persistentDataManager = PersistentDataManager(this)
 
     init {
-        ready.forEach { it() }
         isReady = true
+        ready.forEach { it() }
     }
 }
 
