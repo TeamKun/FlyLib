@@ -37,4 +37,15 @@ fun FlyLibComponent.error(str: String) = this.flyLib.log.error(str)
 fun FlyLibComponent.error(e: Exception) = this.flyLib.log.error(e)
 fun FlyLibComponent.error(lazy: (String) -> String) = this.flyLib.log.error(lazy)
 
+var flyLibLogging = true
+
+/**
+ * For Internal Log
+ */
+internal fun FlyLibComponent.log(str: String) {
+    if (flyLibLogging) {
+        info { "[FlyLib-Internal-Log]$str" }
+    }
+}
+
 fun FlyLibComponent.ready(lambda: () -> Unit) = flyLib.onReady(lambda)
