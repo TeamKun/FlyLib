@@ -7,7 +7,7 @@ import org.bukkit.Location
 import org.bukkit.entity.Mob
 
 class FPathFinder<T : Mob>(val fMob: FMob<T>, override val flyLib: FlyLib = fMob.flyLib) : FlyLibComponent {
-    val bukkitPathFinder = fMob.mob.pathfinder
+    val bukkitPathFinder = fMob.entity.pathfinder
 
     /**
      * Move this mob to the location,

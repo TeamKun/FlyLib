@@ -5,7 +5,7 @@ import com.flylib3.util.FEntityType
 import org.bukkit.Location
 import org.bukkit.entity.Mob
 
-class FMob<T : Mob>(override val flyLib: FlyLib, val mob: T) : FEntity<T>(flyLib, mob) {
+class FMob<T : Mob>(override val flyLib: FlyLib, override val entity: T) : FEntity<T>(flyLib, entity) {
     constructor(flyLib: FlyLib, location: Location, entityType: FEntityType<T>) : this(
         flyLib,
         entityType.spawn(location)
@@ -17,8 +17,8 @@ class FMob<T : Mob>(override val flyLib: FlyLib, val mob: T) : FEntity<T>(flyLib
      * Completely freeze the mob.
      */
     fun freeze(isFreeze: Boolean, ignoreGravity: Boolean = false) {
-        mob.setAI(isFreeze)
-        mob.setGravity(!ignoreGravity)
+        entity.setAI(isFreeze)
+        entity.setGravity(!ignoreGravity)
     }
 
     /**
