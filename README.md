@@ -9,7 +9,7 @@ Please see at https://github.com/orgs/TeamKun/packages?repo_name=FlyLib <br/>
 
 # Features
 - [Command(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/Command.md)
-- [Task(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/Task.md) <br/>
-- [Event(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/Event.md) <br/>
-- [GUI(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/GUI.md) <br/>
-- [Toast(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/Toast.md) <br/>
+- [Task(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/Task.md)
+- [Event(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/Event.md)
+- [GUI(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/GUI.md)
+- [Toast(en)](https://github.com/TeamKun/FlyLib/blob/flylib-3/documents/en/Toast.md)
