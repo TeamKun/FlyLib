@@ -1,6 +1,8 @@
 # FlyLib3
+[![wakatime](https://wakatime.com/badge/user/3e1fa685-0d56-45b2-8cd9-2db5b061c34a/project/5a7a4eb8-8db7-4820-bf0b-7ac53d7efd0e.svg)](https://wakatime.com/badge/user/3e1fa685-0d56-45b2-8cd9-2db5b061c34a/project/5a7a4eb8-8db7-4820-bf0b-7ac53d7efd0e) <br/>
 
 FliLib3 on Paper 1.16.5<br/>
+
 
 # Install 
 Please see at https://github.com/orgs/TeamKun/packages?repo_name=FlyLib <br/>
