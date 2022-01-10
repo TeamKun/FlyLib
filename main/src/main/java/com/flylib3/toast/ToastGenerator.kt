@@ -18,7 +18,7 @@ import java.util.*
 class ToastGenerator(
     val icon: Material,
     val title: String,
-    val description: String,
+    val description: String = "",
     val background: String = "minecraft:textures/gui/advancements/backgrounds/adventure.png",
     val frame: FrameType = FrameType.Goal,
     val uuid: UUID = UUID.randomUUID()
