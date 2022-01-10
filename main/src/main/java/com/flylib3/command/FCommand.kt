@@ -301,6 +301,7 @@ class BuiltFPathCommand(
             return true
         }
         return if (isMatchAll(sender, command, label, args)) {
+            log("[FCommand-onCommand] Command Executed")
             execute(sender, command, label, args)
             true
         } else {

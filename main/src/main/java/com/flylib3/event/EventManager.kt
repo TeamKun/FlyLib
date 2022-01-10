@@ -5,6 +5,7 @@ import com.flylib3.FlyLibComponent
 import com.flylib3.event.ex.ExternalEvent
 import com.flylib3.event.ex.flylib.FlyLibDefaultExEvents
 import com.flylib3.event.stream.EventStreamStarter
+import com.flylib3.util.log
 import com.flylib3.util.ready
 import org.bukkit.event.Event
 import org.bukkit.event.EventPriority
@@ -52,6 +53,7 @@ class EventManager(override val flyLib: FlyLib) : FlyLibComponent {
             registerToHandlerList(handlerList, listener, listener, priority, false)
             return true
         }
+        log("[EventManager] Failed to register listener ${listener.eventClass.simpleName}")
         return false
     }
 
