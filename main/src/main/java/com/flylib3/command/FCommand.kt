@@ -6,6 +6,7 @@ import com.flylib3.command.argument.TypeMatcher
 import com.flylib3.event.ex.FCommandEvent
 import com.flylib3.util.allIndexed
 import com.flylib3.util.error
+import com.flylib3.util.log
 import org.bukkit.ChatColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -57,9 +58,10 @@ class FCommandBuilder(
             Array<out String>
         ) -> List<T>,
         lazyParser: (String) -> T?,
+        lazyMatcher: ((T) -> Boolean)? = null,
         lambda: FCommandBuilderPart<T>.() -> Unit
     ) {
-        val root = FCommandBuilderPart<T>(null, flyLib, lazyValues, lazyParser, this, type)
+        val root = FCommandBuilderPart<T>(null, flyLib, lazyValues, lazyParser, lazyMatcher, this, type)
         lambda(root)
     }
 
@@ -77,6 +79,8 @@ class FCommandBuilder(
 /**
  * @param tType KType of Generics
  * @param lazyValues Array<out String> is the arguments "BEFORE" this part
+ * @param lazyParser parse the argument at this part
+ * @param lazyMatcher return if parsed is matched
  */
 class FCommandBuilderPart<T : Any>(
     val parent: FCommandBuilderPart<*>?,
@@ -88,6 +92,7 @@ class FCommandBuilderPart<T : Any>(
         Array<out String>
     ) -> List<T>,
     val lazyParser: (String) -> T?,
+    val lazyMatcher: ((T) -> Boolean)?,
     val builder: FCommandBuilder,
     val tType: KType
 ) :
@@ -104,6 +109,7 @@ class FCommandBuilderPart<T : Any>(
         flyLib,
         lazyValues = { a, b, c, d -> values },
         (TypeMatcher.getTypeMatcherForce(values[0]::class.createType()) as TypeMatcher<T>).getAsLambda(), // Checked
+        { values.contains(it) },
         builder,
         values[0]::class.createType()
     )
@@ -122,9 +128,10 @@ class FCommandBuilderPart<T : Any>(
             Array<out String>
         ) -> List<R>,
         lazyParser: (String) -> R?,
+        lazyMatcher: ((R) -> Boolean)? = null,
         lambda: FCommandBuilderPart<R>.() -> Unit
     ) {
-        val root = FCommandBuilderPart<R>(this, flyLib, lazyValues, lazyParser, builder, type)
+        val root = FCommandBuilderPart<R>(this, flyLib, lazyValues, lazyParser, lazyMatcher, builder, type)
         lambda(root)
     }
 
@@ -221,10 +228,17 @@ class BuiltFPathCommand(
         return try {
             val t: T? = part.lazyParser(str)
             if (t == null) {
+                log("[FCommand-isMatch] parsed is null")
                 false
             } else {
                 // Type is Same
-                part.lazyValues(sender, command, label, args).contains(t)
+                if (part.lazyMatcher != null) {
+                    log("[FCommand-isMatch] lazyMatcher")
+                    part.lazyMatcher!!(t)
+                } else {
+                    log("[FCommand-isMatch] lazyValues contains?")
+                    part.lazyValues(sender, command, label, args).contains(t)
+                }
             }
         } catch (e: Exception) {
             // Something happened in Parsing String
@@ -258,10 +272,12 @@ class BuiltFPathCommand(
 
     fun isMatchAll(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.size != parts.size) {
+            log("[FCommand-isMatchAll] args.size != parts.size")
             return false
         }
         for (i in 0..args.lastIndex) {
             if (!isMatch(parts[i], sender, command, label, getArgsBeforeIndexPart(args, i), args[i])) {
+                log("[FCommand-isMatchAll] parts[${i}] is not match")
                 return false
             }
         }
@@ -426,7 +442,7 @@ class BuiltFCommand(override val flyLib: FlyLib, vararg val command: BuiltFPathC
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         val matched = getMatched(sender, command, label, args)
-//        println("[Matched]:${matched}")
+        log("[FCommand-Matched]:${matched}")
         return when (matched) {
             is BuiltFPathCommand -> {
                 matched.onCommand(sender, command, label, args)
