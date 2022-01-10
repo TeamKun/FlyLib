@@ -13,6 +13,9 @@ on [CommandGenerateTest.kt](https://github.com/TeamKun/FlyLib/blob/flylib-3/main
 Command Feature has easy way to create/build command.<br/>
 
 ```kotlin
+
+import kotlin.reflect.full.createType
+
 command("testCommand") {
     part<String>("String", "String2") {
         part<Int>(1, 2, 3) {
@@ -27,6 +30,17 @@ command("testCommand") {
             LocalDate::class.createType(),
             { _, _, _, _ -> listOf(LocalDate.now()) },
             { LocalDate.parse(it) }
+        ) {
+            terminal {
+                execute(functionHere)
+            }
+        }
+
+        part<Double>(
+            Double::class.createType(),
+            { listOf<Double>() },   // No Suggestion
+            { it.toDoubleOrNull() },    // parse Value by toDoubleOrNull(if it returns null,that command execution will be ignored)
+            { true }    // If parer returns not null,this matcher always return true(so that if sender executes this command with correct Double value,this command will be executed)
         ) {
             terminal {
                 execute(functionHere)
@@ -65,6 +79,7 @@ fun <T : Any> part(
         Array<out String>
     ) -> List<T>,
     lazyParser: (String) -> T?,
+    lazyMatcher: ((T) -> Boolean)?,
     lambda: FCommandBuilderPart<T>.() -> Unit
 )
 ```
@@ -99,6 +114,7 @@ fun <T : Any> part(
         Array<out String>
     ) -> List<T>,
     lazyParser: (String) -> T?,
+    lazyMatcher: ((T) -> Boolean)?,
     lambda: FCommandBuilderPart<T>.() -> Unit
 )
 ```
@@ -112,9 +128,14 @@ Hoge::class.createType()
 ```
 
 )
-```lazy_values``` is lambda that returns suggest realtime.(Note:```Array<out String>``` is argument before this
+```lazyValues``` is lambda that returns suggest realtime.(Note:```Array<out String>``` is argument before this
 argument.)<br/>
-```lazy_parser``` is lambda that parse values from string.If it is not able,return null.<br/>
+```lazyParser``` is lambda that parse values from string.If it is not able,return null.<br/>
+
+```lazyMatcher```is lambda that check if the value is matched<br/>
+This ```lazyMatcher``` is optional.For situation that needs to get Double/Int/Float etc.<br/>
+If you skip this argument,the value will be compared/matched by ```lazyValues```.<br/>
+If you not skip this argument,the value will be compared/matched by ```lazyMatcher```.<br/>
 
 ## Terminal
 
