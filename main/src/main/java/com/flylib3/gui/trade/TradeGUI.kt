@@ -109,8 +109,13 @@ class TradeGUI(override val flyLib: FlyLib, val entity: Merchant) :
         set(TradeGUIPos(y), t)
     }
 
+    @Deprecated("use set(Int, Trading)", replaceWith = ReplaceWith("set(Int, Trading)"))
     operator fun set(y: Int, recipe: MerchantRecipe) {
         set(TradeGUIPos(y), TradeGUIComponent(recipe, TradeGUIPos(y), this, flyLib))
+    }
+
+    operator fun set(y: Int, trading: Trading) {
+        set(TradeGUIPos(y), TradeGUIComponent(trading, TradeGUIPos(y), this, flyLib))
     }
 
     override fun set(pos: TradeGUIPos, t: TradeGUIComponent?) {
@@ -148,6 +153,13 @@ class TradeGUIComponent(
     val recipe: MerchantRecipe, val pos: TradeGUIPos, val gui: TradeGUI,
     override val flyLib: FlyLib
 ) : FlyLibComponent {
+    constructor(trading: Trading, pos: TradeGUIPos, gui: TradeGUI, flyLib: FlyLib) : this(
+        trading.build(),
+        pos,
+        gui,
+        flyLib
+    )
+
     /**
      * Listener for when the player clicks on this trade
      */

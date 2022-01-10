@@ -4,6 +4,7 @@ import com.flylib3.FlyLibPlugin
 import com.flylib3.event.ex.FCommandEvent
 import com.flylib3.gui.trade.TradeGUI
 import com.flylib3.gui.trade.TradeGUIComponent
+import com.flylib3.gui.trade.Trading
 import com.flylib3.item.ItemData
 import com.flylib3.util.command
 import net.kyori.adventure.text.Component
@@ -24,14 +25,15 @@ class TradeGUITest : FlyLibPlugin() {
 
     fun open(e: FCommandEvent, str: String): Boolean {
         val gui = TradeGUI(flyLib, Component.text("Test Villager"))
-        gui[0] = MerchantRecipe(
-            ItemData(material = Material.DIAMOND, name = Component.text("なんかすぺしゃるなダイヤ")).build(),
-            10000
-        ).also {
-            it.addIngredient(
-                ItemData(material = Material.DIAMOND).build()
-            )
-        }
+        gui[0] = Trading(
+            firstIngredient = ItemData(material = Material.DIAMOND).build(),
+            result = ItemData(
+                material = Material.DIAMOND,
+                name = Component.text("なんかすぺしゃるなダイヤ")
+            ).build(),
+            maxUses = 10
+        )
+
         return if (e.commandSender is Player) {
             gui.open(e.commandSender)
             true
